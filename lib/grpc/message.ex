@@ -30,8 +30,9 @@ defmodule GRPC.Message do
   """
   @spec to_data(iodata, map | Keyword.t()) ::
           {:ok, binary, non_neg_integer} | {:error, String.t()}
-  def to_data(message, opts \\ %{}) do
+  def to_data(message, opts \\ []) do
     compressor = opts[:compressor]
+    codec = opts[:codec]
 
     {compress_flag, message} =
       if compressor do
@@ -47,7 +48,7 @@ defmodule GRPC.Message do
       {:error, "Encoded message is too large (#{length} bytes)"}
     else
       result = <<compress_flag, length::size(4)-unit(8), message::binary>>
-      {:ok, result, length + 5}
+      {:ok, codec.pack_encoded(result), length + 5}
     end
   end
 

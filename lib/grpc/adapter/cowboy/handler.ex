@@ -220,7 +220,7 @@ defmodule GRPC.Adapter.Cowboy.Handler do
       req = send_error(req, state, msg)
       {:stop, req, state}
     else
-      case GRPC.Message.to_data(data, compressor: compressor) do
+      case GRPC.Message.to_data(data, compressor: compressor, codec: opts[:codec]) do
         {:ok, data, _size} ->
           req = check_sent_resp(req)
           :cowboy_req.stream_body(data, is_fin, req)
@@ -417,9 +417,15 @@ defmodule GRPC.Adapter.Cowboy.Handler do
   defp extract_subtype("application/grpc"), do: {:ok, "proto"}
   defp extract_subtype("application/grpc+"), do: {:ok, "proto"}
   defp extract_subtype("application/grpc;"), do: {:ok, "proto"}
-
   defp extract_subtype(<<"application/grpc+", rest::binary>>), do: {:ok, rest}
   defp extract_subtype(<<"application/grpc;", rest::binary>>), do: {:ok, rest}
+
+  defp extract_subtype("application/grpc-web"), do: {:ok, "proto"}
+  defp extract_subtype("application/grpc-web+"), do: {:ok, "proto"}
+  defp extract_subtype("application/grpc-web;"), do: {:ok, "proto"}
+  defp extract_subtype("application/grpc-web-text"), do: {:ok, "text"}
+  defp extract_subtype(<<"application/grpc-web+", rest::binary>>), do: {:ok, rest}
+  defp extract_subtype(<<"application/grpc-web-text+", rest::binary>>), do: {:ok, rest}
 
   defp extract_subtype(type) do
     Logger.warn("Got unknown content-type #{type}, please create an issue.")

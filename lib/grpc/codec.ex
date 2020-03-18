@@ -7,4 +7,6 @@ defmodule GRPC.Codec do
   @callback name() :: String.t()
   @callback encode(any) :: binary
   @callback decode(any, module :: atom) :: any
+  @callback prepare_decode(binary) :: binary
+  @callback pack_encoded(binary) :: binary
 end
