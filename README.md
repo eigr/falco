@@ -11,6 +11,14 @@ An Elixir implementation of [gRPC](http://www.grpc.io/).
 
 **NOTICE: Erlang/OTP needs >= 20.3.2**
 
+**NOTICE: grpc_gun**
+
+Now `{:gun, "~> 2.0.0", hex: :grpc_gun}` is used in mix.exs because grpc depnds on Gun 2.0,
+but its stable version is not released. So I published a [2.0 version on hex](https://hex.pm/packages/grpc_gun)
+with a different name. So if you have other dependencies who depends on Gun, you need to use
+override: `{:gun, "~> 2.0.0", hex: :grpc_gun, override: true}`. Let's wait for this issue
+https://github.com/ninenines/gun/issues/229.
+
 ## Installation
 
 The package can be installed as:
@@ -19,22 +27,11 @@ The package can be installed as:
   def deps do
     [
       {:grpc, github: "elixir-grpc/grpc"},
-      # This may be needed when grpc_{cowlib/gun/cowboy} packages on hex are used, see mix.exs for
-      # details.
-      # Also see below explain.
-      {:cowlib, "~> 2.8.0", hex: :grpc_cowlib, override: true},
+      # 2.9.0 fixes some important bugs, so it's better to use ~> 2.9.0
+      {:cowlib, "~> 2.9.0", override: true}
     ]
   end
   ```
-
-**NOTICE: grpc_gun & grpc_cowlib may be used**
-
-grpc rely on them heavily but I can't control the release of gun and cowlib. I don't want to always
-wait for their releases epecially when their HTTP/2 support are not very stable. And hex doesn't allow
-dependencies are GitHub, so I published my own versions to hex so that grpc can be published.
-
-My current releases don't have big differences with the upstream ones. And I think this hack will only be
-used in the near future because cowlib, gun and cowboy are becoming more and more stable.
 
 ## Usage
 
