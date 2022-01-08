@@ -193,7 +193,7 @@ defmodule GRPC.Adapter.Cowboy do
   end
 
   defp socket_opts(port, opts) do
-    socket_opts = [{:raw, 1, 15}, {:active, 100}, {:port, port}]
+    socket_opts = [{:raw, 1, 15}, {:active, 1000}, {:port, port}]
     socket_opts = if opts[:ip], do: [{:ip, opts[:ip]} | socket_opts], else: socket_opts
 
     if opts[:cred] do
