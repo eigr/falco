@@ -166,7 +166,7 @@ defmodule GRPC.Adapter.Cowboy do
     opts =
       Map.merge(
         %{
-          active_n: 1000,
+          # active_n: 1000,
           env: %{dispatch: dispatch},
           idle_timeout: idle_timeout,
           inactivity_timeout: idle_timeout,
@@ -193,7 +193,7 @@ defmodule GRPC.Adapter.Cowboy do
   end
 
   defp socket_opts(port, opts) do
-    socket_opts = [port: port]
+    socket_opts = [{:raw, 1, 15}, port: port]
     socket_opts = if opts[:ip], do: [{:ip, opts[:ip]} | socket_opts], else: socket_opts
 
     if opts[:cred] do
