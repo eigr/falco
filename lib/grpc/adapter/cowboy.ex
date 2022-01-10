@@ -198,6 +198,7 @@ defmodule GRPC.Adapter.Cowboy do
 
   defp socket_opts(port, opts) do
     socket_opts = [{:raw, 1, 15, <<1::size(32)>>}, {:active, true}, {:port, port}]
+    Logger.info("socket_opts #{inspect(socket_opts)}")
     socket_opts = if opts[:ip], do: [{:ip, opts[:ip]} | socket_opts], else: socket_opts
 
     if opts[:cred] do
