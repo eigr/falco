@@ -60,7 +60,7 @@ defmodule GRPC.Adapter.Cowboy do
   @spec start_link(atom, atom, GRPC.Server.servers_map(), any) :: {:ok, pid} | {:error, any}
   def start_link(scheme, endpoint, servers, {m, f, [ref | _] = a}) do
     Logger.info(
-      "Starting #{endpoint} on #{scheme} with Module #{m} and Function #{f} and Args #{a}"
+      "Starting #{endpoint} on #{scheme} with Module #{inspect(m)} and Function #{inspect(f)} and Args #{inspect(a)}"
     )
 
     case apply(m, f, a) do
