@@ -37,6 +37,7 @@ defmodule GRPC.Adapter.Cowboy do
   @spec child_spec(atom, GRPC.Server.servers_map(), non_neg_integer, Keyword.t()) ::
           Supervisor.Spec.spec()
   def child_spec(endpoint, servers, port, opts) do
+    Logger.info("Hereeeeeeeeeeeeeeeeeeeee")
     [ref, trans_opts, proto_opts] = cowboy_start_args(endpoint, servers, port, opts)
     trans_opts = Map.put(trans_opts, :connection_type, :supervisor)
 
