@@ -170,7 +170,7 @@ defmodule GRPC.Adapter.Cowboy do
     opts =
       Map.merge(
         %{
-          # active_n: 1000,
+          active_n: 1000,
           env: %{dispatch: dispatch},
           idle_timeout: idle_timeout,
           inactivity_timeout: idle_timeout,
