@@ -20,6 +20,10 @@ defmodule GRPC.Adapter.Cowboy do
     start_args = cowboy_start_args(endpoint, servers, port, opts)
     start_func = if opts[:cred], do: :start_tls, else: :start_clear
 
+    # 0..System.schedulers_online()
+    # |> Enum.map(fn i ->
+
+    # end)
     case apply(:cowboy, start_func, start_args) do
       {:ok, pid} ->
         port = :ranch.get_port(servers_name(endpoint, servers))
@@ -55,6 +59,10 @@ defmodule GRPC.Adapter.Cowboy do
   # spec: :supervisor.mfargs doesn't work
   @spec start_link(atom, atom, GRPC.Server.servers_map(), any) :: {:ok, pid} | {:error, any}
   def start_link(scheme, endpoint, servers, {m, f, [ref | _] = a}) do
+    Logger.info(
+      "Starting #{endpoint} on #{scheme} with Module #{m} and Function #{f} and Args #{a}"
+    )
+
     case apply(m, f, a) do
       {:ok, pid} ->
         Logger.info(running_info(scheme, endpoint, servers, ref))
