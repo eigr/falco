@@ -20,10 +20,6 @@ defmodule GRPC.Adapter.Cowboy do
     start_args = cowboy_start_args(endpoint, servers, port, opts)
     start_func = if opts[:cred], do: :start_tls, else: :start_clear
 
-    # 0..System.schedulers_online()
-    # |> Enum.map(fn i ->
-
-    # end)
     case apply(:cowboy, start_func, start_args) do
       {:ok, pid} ->
         port = :ranch.get_port(servers_name(endpoint, servers))
@@ -37,7 +33,6 @@ defmodule GRPC.Adapter.Cowboy do
   @spec child_spec(atom, GRPC.Server.servers_map(), non_neg_integer, Keyword.t()) ::
           Supervisor.Spec.spec()
   def child_spec(endpoint, servers, port, opts) do
-    Logger.info("Hereeeeeeeeeeeeeeeeeeeee")
     [ref, trans_opts, proto_opts] = cowboy_start_args(endpoint, servers, port, opts)
     trans_opts = Map.put(trans_opts, :connection_type, :supervisor)
 
@@ -202,7 +197,7 @@ defmodule GRPC.Adapter.Cowboy do
   end
 
   defp socket_opts(port, opts) do
-    socket_opts = [{:raw, 1, 15}, {:active, 1000}, {:port, port}]
+    socket_opts = [{:raw, 1, 15, <<1::size(32)>>}, {:port, port}]
     socket_opts = if opts[:ip], do: [{:ip, opts[:ip]} | socket_opts], else: socket_opts
 
     if opts[:cred] do
