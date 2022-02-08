@@ -1,9 +1,9 @@
-defmodule GRPC.Integration.ConnectionTest do
+defmodule Falco.Integration.ConnectionTest do
   use GRPC.Integration.TestCase
 
-  @cert_path Path.expand("./tls/server1.pem", :code.priv_dir(:grpc))
-  @key_path Path.expand("./tls/server1.key", :code.priv_dir(:grpc))
-  @ca_path Path.expand("./tls/ca.pem", :code.priv_dir(:grpc))
+  @cert_path Path.expand("./tls/server1.pem", :code.priv_dir(:falco))
+  @key_path Path.expand("./tls/server1.key", :code.priv_dir(:falco))
+  @ca_path Path.expand("./tls/ca.pem", :code.priv_dir(:falco))
 
   defmodule FeatureServer do
     use GRPC.Server, service: Routeguide.RouteGuide.Service

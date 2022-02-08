@@ -1,3 +1,3 @@
 use Mix.Config
 
-# config :grpc, start_server: true
+# config :falco, start_server: true

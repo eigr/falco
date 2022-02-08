@@ -1,4 +1,4 @@
-defmodule GRPC.ServerTest do
+defmodule Falco.ServerTest do
   use ExUnit.Case
 
   defmodule Greeter.Service do

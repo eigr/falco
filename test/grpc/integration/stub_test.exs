@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.StubTest do
+defmodule Falco.Integration.StubTest do
   use GRPC.Integration.TestCase
 
   defmodule HelloServer do

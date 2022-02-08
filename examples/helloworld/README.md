@@ -1,4 +1,4 @@
-# Helloworld in grpc-elixir
+# Helloworld in falco
 
 ## Usage
 
@@ -9,7 +9,7 @@ $ mix do deps.get, compile
 
 2. Run the server
 ```shell
-$ mix grpc.server
+$ mix falco.server
 ```
 
 3. Run the client script
@@ -37,7 +37,7 @@ Refer to [protobuf-elixir](https://github.com/tony612/protobuf-elixir#usage) for
 Change the config to:
 
 ```elixir
-config :grpc, start_server: true
+config :falco, start_server: true
 ```
 
 ## Benchmark

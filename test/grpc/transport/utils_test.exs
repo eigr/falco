@@ -1,4 +1,4 @@
-defmodule GRPC.Transport.UtilsTest do
+defmodule Falco.Transport.UtilsTest do
   use ExUnit.Case, async: true
 
   import GRPC.Transport.Utils

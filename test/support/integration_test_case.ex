@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.TestCase do
+defmodule Falco.Integration.TestCase do
   use ExUnit.CaseTemplate, async: true
 
   require Logger

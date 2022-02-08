@@ -6,7 +6,7 @@ config :prometheus, GRPCPrometheus.ServerInterceptor,
 config :prometheus, GRPCPrometheus.ClientInterceptor,
   latency: :histogram
 
-# config :grpc, start_server: true
+# config :falco, start_server: true
 
 # config :logger, level: :debug
 config :logger, level: :warn

@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.NamespaceTest do
+defmodule Falco.Integration.NamespaceTest do
   use GRPC.Integration.TestCase
 
   defmodule FeatureServer do

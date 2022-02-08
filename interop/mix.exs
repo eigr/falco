@@ -22,7 +22,7 @@ defmodule Interop.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:grpc, path: "..", override: true},
+      {:falco, path: "..", override: true},
       {:cowlib, "~> 2.9.0", override: true},
       {:grpc_prometheus, ">= 0.1.0"},
       {:grpc_statsd, "~> 0.1.0"},

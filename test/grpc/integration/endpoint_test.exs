@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.EndpointTest do
+defmodule Falco.Integration.EndpointTest do
   use GRPC.Integration.TestCase
   import ExUnit.CaptureLog
 

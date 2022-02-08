@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.ClientInterceptorTest do
+defmodule Falco.Integration.ClientInterceptorTest do
   use GRPC.Integration.TestCase
 
   defmodule HelloServer do

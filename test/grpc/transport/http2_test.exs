@@ -1,4 +1,4 @@
-defmodule GRPC.Transport.HTTP2Test do
+defmodule Falco.Transport.HTTP2Test do
   use ExUnit.Case, async: true
   alias GRPC.Channel
   alias GRPC.Transport.HTTP2

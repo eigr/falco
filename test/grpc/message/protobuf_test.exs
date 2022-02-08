@@ -1,4 +1,4 @@
-defmodule GRPC.Message.ProtobufTest do
+defmodule Falco.Message.ProtobufTest do
   use ExUnit.Case, async: true
 
   defmodule Helloworld.HelloRequest do

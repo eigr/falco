@@ -1,4 +1,4 @@
-defmodule GRPC.ChannelTest do
+defmodule Falco.ChannelTest do
   use ExUnit.Case
   alias GRPC.Test.ClientAdapter
   alias GRPC.Channel

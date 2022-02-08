@@ -1,4 +1,4 @@
-defmodule GRPC.TimeUtilsTest do
+defmodule Falco.TimeUtilsTest do
   use ExUnit.Case, async: true
 
   doctest GRPC.TimeUtils

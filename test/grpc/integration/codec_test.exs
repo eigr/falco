@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.CodecTest do
+defmodule Falco.Integration.CodecTest do
   use GRPC.Integration.TestCase
 
   defmodule NotRegisteredCodec do

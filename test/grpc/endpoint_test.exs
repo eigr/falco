@@ -1,4 +1,4 @@
-defmodule GRPC.EndpointTest do
+defmodule Falco.EndpointTest do
   use ExUnit.Case, async: true
 
   defmodule Interceptor1 do

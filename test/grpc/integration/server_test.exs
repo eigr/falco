@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.ServerTest do
+defmodule Falco.Integration.ServerTest do
   use GRPC.Integration.TestCase
 
   defmodule FeatureServer do

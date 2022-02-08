@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.ErplackNotypesTest do
+defmodule Falco.Integration.ErplackNotypesTest do
   use GRPC.Integration.TestCase
 
   defmodule Helloworld.Notypes.Service do

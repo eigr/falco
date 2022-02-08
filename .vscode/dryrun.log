@@ -1,0 +1,5 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/sleipnir/workspaces/eigr/falco'
+mix test
+make: Leaving directory '/home/sleipnir/workspaces/eigr/falco'
+ 

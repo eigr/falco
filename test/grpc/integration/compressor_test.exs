@@ -1,4 +1,4 @@
-defmodule GRPC.Integration.CompressorTest do
+defmodule Falco.Integration.CompressorTest do
   use GRPC.Integration.TestCase
 
   defmodule HelloServer do

@@ -12,12 +12,12 @@ defmodule Helloworld.Mixfile do
 
   def application do
     [mod: {HelloworldApp, []},
-     applications: [:logger, :grpc]]
+     applications: [:logger, :falco]]
   end
 
   defp deps do
     [
-      {:grpc, path: "../../"},
+      {:falco, path: "../../"},
       {:protobuf, github: "tony612/protobuf-elixir", override: true},
       {:cowlib, "~> 2.8.0", hex: :grpc_cowlib, override: true},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},

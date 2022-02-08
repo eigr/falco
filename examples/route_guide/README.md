@@ -1,4 +1,4 @@
-# RouteGuide in grpc-elixir
+# RouteGuide in falco
 
 ## Usage
 
@@ -9,7 +9,7 @@ $ mix do deps.get, compile
 
 2. Run the server
 ```
-$ mix grpc.server
+$ mix falco.server
 ```
 
 2. Run the client
@@ -42,12 +42,12 @@ $ TLS=true mix run priv/client.exs
 ## FAQ
 
 * How to change log level? Check out `config/config.exs`, default to warn
-* Use local grpc-elixir? Uncomment `{:grpc, path: "../../"}` in `mix.exs`
+* Use local grpc-elixir? Uncomment `{:falco, path: "../../"}` in `mix.exs`
 * Why is output format of `Feature` & `Point` different from normal map? Check out `lib/inspect.ex`
 * How to start server when starting your application?
 
   Change the config to:
 
   ```elixir
-  config :grpc, start_server: true
+  config :falco, start_server: true
   ```

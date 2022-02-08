@@ -21,7 +21,7 @@ defmodule Benchmark.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:grpc, path: ".."},
+      {:falco, path: ".."},
       {:protobuf, github: "tony612/protobuf-elixir", override: true}
     ]
   end
