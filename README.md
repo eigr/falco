@@ -71,7 +71,7 @@ defmodule HelloworldApp do
       supervisor(Falco.Server.Supervisor, [{Helloworld.Endpoint, 50051}])
     ]
 
-    opts = [strategy: :one_for_one, name: YourApp]
+    opts = [strategy: :one_for_one, name: HelloworldApp]
     Supervisor.start_link(children, opts)
   end
 end
@@ -98,7 +98,7 @@ $ mix falco.server
 4. Call rpc:
 ```elixir
 iex> {:ok, channel} = Falco.Stub.connect("localhost:50051")
-iex> request = Helloworld.HelloRequest.new(name: "grpc-elixir")
+iex> request = Helloworld.HelloRequest.new(name: "falco-grpc")
 iex> {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(request)
 
 # With interceptors
