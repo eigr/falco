@@ -1,6 +1,6 @@
 defmodule Grpc.Testing.BenchmarkService.Service do
   @moduledoc false
-  use GRPC.Service, name: "grpc.testing.BenchmarkService"
+  use Falco.Service, name: "grpc.testing.BenchmarkService"
 
   rpc :UnaryCall, Grpc.Testing.SimpleRequest, Grpc.Testing.SimpleResponse
   rpc :StreamingCall, stream(Grpc.Testing.SimpleRequest), stream(Grpc.Testing.SimpleResponse)
@@ -11,5 +11,5 @@ end
 
 defmodule Grpc.Testing.BenchmarkService.Stub do
   @moduledoc false
-  use GRPC.Stub, service: Grpc.Testing.BenchmarkService.Service
+  use Falco.Stub, service: Grpc.Testing.BenchmarkService.Service
 end

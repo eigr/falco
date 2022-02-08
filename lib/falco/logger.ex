@@ -8,13 +8,13 @@ defmodule Falco.Logger.Server do
   ## Usage
 
       defmodule Your.Endpoint do
-        use GRPC.Endpoint
+        use Falco.Endpoint
 
-        intercept GRPC.Logger.Server, level: :info
+        intercept Falco.Logger.Server, level: :info
       end
   """
   require Logger
-  @behaviour GRPC.ServerInterceptor
+  @behaviour Falco.ServerInterceptor
 
   def init(opts) do
     Keyword.get(opts, :level, :info)
@@ -59,8 +59,8 @@ defmodule Falco.Logger.Client do
 
   ## Usage
 
-      {:ok, channel} = GRPC.Stub.connect("localhost:50051", interceptors: [GRPC.Logger.Client])
-      {:ok, channel} = GRPC.Stub.connect("localhost:50051", interceptors: [{GRPC.Logger.Client, level: :info}])
+      {:ok, channel} = Falco.Stub.connect("localhost:50051", interceptors: [Falco.Logger.Client])
+      {:ok, channel} = Falco.Stub.connect("localhost:50051", interceptors: [{Falco.Logger.Client, level: :info}])
   """
 
   def init(opts) do
@@ -83,7 +83,7 @@ defmodule Falco.Logger.Client do
         Logger.log(level, fn ->
           diff = System.convert_time_unit(stop - start, :native, :microsecond)
 
-          ["Got ", inspect(status), " in ", GRPC.Logger.Server.formatted_diff(diff)]
+          ["Got ", inspect(status), " in ", Falco.Logger.Server.formatted_diff(diff)]
         end)
       end
 

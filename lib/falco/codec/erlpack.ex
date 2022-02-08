@@ -1,5 +1,5 @@
 defmodule Falco.Codec.Erlpack do
-  @behaviour GRPC.Codec
+  @behaviour Falco.Codec
 
   def name() do
     "erlpack"

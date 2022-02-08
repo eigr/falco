@@ -5,28 +5,28 @@ defmodule Falco.Endpoint do
   ## Usage
 
       defmodule Your.Endpoint do
-        use GRPC.Endpoint
+        use Falco.Endpoint
 
-        intercept GRPC.Logger.Server, level: :info
+        intercept Falco.Logger.Server, level: :info
         intercept Other.Interceptor
         run HelloServer, interceptors: [HelloHaltInterceptor]
         run FeatureServer
       end
 
   Interceptors will be run around your rpc calls from top to bottom. And you can even set
-  interceptors for some of servers. In the above example, `[GRPC.Logger.Server, Other.Interceptor,
-  HelloHaltInterceptor]` will be run for `HelloServer`, and `[GRPC.Logger.Server, Other.Interceptor]`
+  interceptors for some of servers. In the above example, `[Falco.Logger.Server, Other.Interceptor,
+  HelloHaltInterceptor]` will be run for `HelloServer`, and `[Falco.Logger.Server, Other.Interceptor]`
   will be run for `FeatureServer`.
   """
 
   @doc false
   defmacro __using__(_opts) do
     quote do
-      import GRPC.Endpoint, only: [intercept: 1, intercept: 2, run: 1, run: 2]
+      import Falco.Endpoint, only: [intercept: 1, intercept: 2, run: 1, run: 2]
 
       Module.register_attribute(__MODULE__, :interceptors, accumulate: true)
       Module.register_attribute(__MODULE__, :servers, accumulate: true)
-      @before_compile GRPC.Endpoint
+      @before_compile Falco.Endpoint
     end
   end
 
@@ -107,7 +107,7 @@ defmodule Falco.Endpoint do
   end
 
   defp parse_run_opts([{k, _} | _], _) do
-    raise ArgumentError, message: "Unknown option for GRPC.Endpoint.run/2: #{k}"
+    raise ArgumentError, message: "Unknown option for Falco.Endpoint.run/2: #{k}"
   end
 
   defp init_interceptors(interceptors) do

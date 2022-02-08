@@ -7,7 +7,7 @@ defmodule Falco.Service do
   functions easily:
 
       defmodule Greeter.Service do
-        use GRPC.Service, name: "helloworld.Greeter"
+        use Falco.Service, name: "helloworld.Greeter"
 
         rpc :SayHello, HelloRequest, stream(HelloReply)
       end
@@ -15,10 +15,10 @@ defmodule Falco.Service do
 
   defmacro __using__(opts) do
     quote do
-      import GRPC.Service, only: [rpc: 3, stream: 1]
+      import Falco.Service, only: [rpc: 3, stream: 1]
 
       Module.register_attribute(__MODULE__, :rpc_calls, accumulate: true)
-      @before_compile GRPC.Service
+      @before_compile Falco.Service
 
       def __meta__(:name), do: unquote(opts[:name])
     end

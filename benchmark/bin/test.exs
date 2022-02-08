@@ -52,7 +52,7 @@ req =
     payload: payload
   )
 
-{:ok, ch} = GRPC.Stub.connect("localhost:10000")
+{:ok, ch} = Falco.Stub.connect("localhost:10000")
 Grpc.Testing.BenchmarkService.Stub.unary_call(ch, req)
 
 # IO.inspect(Time.utc_now()); Enum.each(1..1000, fn _ -> Grpc.Testing.BenchmarkService.Stub.unary_call(ch, req) end); IO.inspect(Time.utc_now())

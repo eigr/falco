@@ -4,7 +4,7 @@ defmodule Falco.Client.Stream do
 
   ## Fields
 
-    * `:channel`           - `GRPC.Channel`, the channel established by client
+    * `:channel`           - `Falco.Channel`, the channel established by client
     * `:payload`           - data used by adapter in a request
     * `:path`              - the request path to sent
     * `request_mod`        - the request module, or nil for untyped protocols
@@ -16,7 +16,7 @@ defmodule Falco.Client.Stream do
 
   @typep stream_payload :: any
   @type t :: %__MODULE__{
-          channel: GRPC.Channel.t(),
+          channel: Falco.Channel.t(),
           service_name: String.t(),
           method_name: String.t(),
           grpc_type: atom,
@@ -43,14 +43,17 @@ defmodule Falco.Client.Stream do
             path: nil,
             request_mod: nil,
             response_mod: nil,
-            codec: GRPC.Codec.Proto,
+            codec: Falco.Codec.Proto,
             server_stream: nil,
             # TODO: it's better to get canceled status from adapter
             canceled: false,
             compressor: nil,
             accepted_compressors: [],
             headers: %{},
-            __interface__: %{send_request: &__MODULE__.send_request/3, recv: &GRPC.Stub.do_recv/2}
+            __interface__: %{
+              send_request: &__MODULE__.send_request/3,
+              recv: &Falco.Stub.do_recv/2
+            }
 
   @doc false
   def put_payload(%{payload: payload} = stream, key, val) do
@@ -68,7 +71,7 @@ defmodule Falco.Client.Stream do
   end
 
   @doc false
-  @spec send_request(GRPC.Client.Stream.t(), struct, Keyword.t()) :: GRPC.Client.Stream.t()
+  @spec send_request(Falco.Client.Stream.t(), struct, Keyword.t()) :: Falco.Client.Stream.t()
   def send_request(
         %{codec: codec, channel: %{adapter: adapter}, compressor: compressor} = stream,
         request,

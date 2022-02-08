@@ -1,12 +1,12 @@
 defmodule Falco.Credential do
   @moduledoc """
   Stores credentials for authentication. It can be used to establish secure connections
-  by passed to `GRPC.Stub.connect/2` as an argument.
+  by passed to `Falco.Stub.connect/2` as an argument.
 
   ## Examples
 
-      iex> cred = GRPC.Credential.new(ssl: [cacertfile: ca_path])
-      iex> GRPC.Stub.connect("localhost:10000", cred: cred)
+      iex> cred = Falco.Credential.new(ssl: [cacertfile: ca_path])
+      iex> Falco.Stub.connect("localhost:10000", cred: cred)
   """
 
   @type t :: %__MODULE__{ssl: [:ssl.tls_option()]}

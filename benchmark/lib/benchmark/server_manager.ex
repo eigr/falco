@@ -7,7 +7,7 @@ defmodule Benchmark.ServerManager do
 
   def start_server(:protobuf, config) do
     cores = Benchmark.Manager.set_cores(config.core_limit)
-    {:ok, pid, port} = GRPC.Server.start(Grpc.Testing.BenchmarkService.Server, config.port)
+    {:ok, pid, port} = Falco.Server.start(Grpc.Testing.BenchmarkService.Server, config.port)
 
     %Benchmark.Server{
       cores: cores,
@@ -18,5 +18,5 @@ defmodule Benchmark.ServerManager do
     }
   end
 
-  def start_server(_, _), do: raise(GRPC.RPCError, status: :unimplemented)
+  def start_server(_, _), do: raise(Falco.RPCError, status: :unimplemented)
 end

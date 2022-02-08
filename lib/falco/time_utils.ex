@@ -9,7 +9,7 @@ defmodule Falco.TimeUtils do
       iex> from = DateTime.utc_now
       iex> us = DateTime.to_unix(from, :microsecond)
       iex> datetime = DateTime.from_unix!(us + 5005, :microsecond)
-      iex> Float.round(GRPC.TimeUtils.to_relative(datetime, from), 3)
+      iex> Float.round(Falco.TimeUtils.to_relative(datetime, from), 3)
       5.005
   """
   def to_relative(datetime, from \\ DateTime.utc_now()) do

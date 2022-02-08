@@ -1,8 +1,8 @@
 defmodule Falco.Integration.CodecTest do
-  use GRPC.Integration.TestCase
+  use Falco.Integration.TestCase
 
   defmodule NotRegisteredCodec do
-    @behaviour GRPC.Codec
+    @behaviour Falco.Codec
 
     def name() do
       "not-registered"
@@ -18,9 +18,9 @@ defmodule Falco.Integration.CodecTest do
   end
 
   defmodule HelloServer do
-    use GRPC.Server,
+    use Falco.Server,
       service: Helloworld.Greeter.Service,
-      codecs: [GRPC.Codec.Proto, GRPC.Codec.Erlpack]
+      codecs: [Falco.Codec.Proto, Falco.Codec.Erlpack]
 
     def say_hello(req, _stream) do
       Helloworld.HelloReply.new(message: "Hello, #{req.name}")
@@ -28,27 +28,27 @@ defmodule Falco.Integration.CodecTest do
   end
 
   defmodule HelloErlpackStub do
-    use GRPC.Stub, service: Helloworld.Greeter.Service
+    use Falco.Stub, service: Helloworld.Greeter.Service
   end
 
   test "Says hello over erlpack" do
     run_server(HelloServer, fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       name = "Mairbek"
       req = Helloworld.HelloRequest.new(name: name)
 
-      {:ok, reply} = channel |> HelloErlpackStub.say_hello(req, codec: GRPC.Codec.Erlpack)
+      {:ok, reply} = channel |> HelloErlpackStub.say_hello(req, codec: Falco.Codec.Erlpack)
       assert reply.message == "Hello, #{name}"
 
       # verify that proto still works
-      {:ok, reply} = channel |> HelloErlpackStub.say_hello(req, codec: GRPC.Codec.Proto)
+      {:ok, reply} = channel |> HelloErlpackStub.say_hello(req, codec: Falco.Codec.Proto)
       assert reply.message == "Hello, #{name}"
 
       # codec not registered
       {:error, reply} = channel |> HelloErlpackStub.say_hello(req, codec: NotRegisteredCodec)
 
-      assert %GRPC.RPCError{
-               status: GRPC.Status.unimplemented(),
+      assert %Falco.RPCError{
+               status: Falco.Status.unimplemented(),
                message: "No codec registered for content-type application/grpc+not-registered"
              } == reply
     end)

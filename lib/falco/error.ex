@@ -3,17 +3,17 @@ defmodule Falco.RPCError do
   The RPC error raised in server side and got in client side.
 
       # server side
-      raise GRPC.RPCError, status: :unknown # preferred
-      raise GRPC.RPCError, status: GRPC.Status.unknown, message: "error message"
+      raise Falco.RPCError, status: :unknown # preferred
+      raise Falco.RPCError, status: Falco.Status.unknown, message: "error message"
 
       # client side
       {:error, error} = Your.Stub.unary_call(channel, request)
   """
 
   defexception [:status, :message]
-  @type t :: %__MODULE__{status: GRPC.Status.t(), message: String.t()}
+  @type t :: %__MODULE__{status: Falco.Status.t(), message: String.t()}
 
-  alias GRPC.Status
+  alias Falco.Status
 
   @spec exception(Status.t(), String.t()) :: t
   def new(status) when is_atom(status) do
@@ -38,7 +38,7 @@ defmodule Falco.RPCError do
   end
 
   defp parse_args([{:status, status} | t], acc) when is_atom(status) do
-    acc = %{acc | status: apply(GRPC.Status, status, [])}
+    acc = %{acc | status: apply(Falco.Status, status, [])}
     parse_args(t, acc)
   end
 
@@ -48,11 +48,11 @@ defmodule Falco.RPCError do
   end
 
   def exception(status, message) when is_atom(status) do
-    %GRPC.RPCError{status: apply(GRPC.Status, status, []), message: message}
+    %Falco.RPCError{status: apply(Falco.Status, status, []), message: message}
   end
 
   def exception(status, message) when is_integer(status) do
-    %GRPC.RPCError{status: status, message: message}
+    %Falco.RPCError{status: status, message: message}
   end
 
   defp status_message(1), do: "The operation was cancelled (typically by the caller)"

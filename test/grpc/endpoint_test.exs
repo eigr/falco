@@ -18,7 +18,7 @@ defmodule Falco.EndpointTest do
   end
 
   defmodule FooEndpoint do
-    use GRPC.Endpoint
+    use Falco.Endpoint
 
     intercept Interceptor1
     intercept Interceptor2, foo: 1

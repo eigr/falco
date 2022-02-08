@@ -2,17 +2,17 @@ defmodule Falco.Server do
   @moduledoc """
   A gRPC server which handles requests by calling user-defined functions.
 
-  You should pass a `GRPC.Service` in when *use* the module:
+  You should pass a `Falco.Service` in when *use* the module:
 
       defmodule Greeter.Service do
-        use GRPC.Service, name: "ping"
+        use Falco.Service, name: "ping"
 
         rpc :SayHello, Request, Reply
         rpc :SayGoodbye, stream(Request), stream(Reply)
       end
 
       defmodule Greeter.Server do
-        use GRPC.Server, service: Greeter.Service
+        use Falco.Server, service: Greeter.Service
 
         def say_hello(request, _stream) do
           Reply.new(message: "Hello")
@@ -20,12 +20,12 @@ defmodule Falco.Server do
 
         def say_goodbye(request_enum, stream) do
           requests = Enum.map request_enum, &(&1)
-          GRPC.Server.send_reply(stream, reply1)
-          GRPC.Server.send_reply(stream, reply2)
+          Falco.Server.send_reply(stream, reply1)
+          Falco.Server.send_reply(stream, reply2)
         end
       end
 
-  Your functions should accept a client request and a `GRPC.Server.Stream`.
+  Your functions should accept a client request and a `Falco.Server.Stream`.
   The request will be a `Enumerable.t`(created by Elixir's `Stream`) of requests
   if it's streaming. If a reply is streaming, you need to call `send_reply/2` to send
   replies one by one instead of returning reply in the end.
@@ -33,27 +33,27 @@ defmodule Falco.Server do
 
   require Logger
 
-  alias GRPC.Server.Stream
-  alias GRPC.RPCError
+  alias Falco.Server.Stream
+  alias Falco.RPCError
 
   @type rpc_req :: struct | Enumerable.t()
   @type rpc_return :: struct | any
-  @type rpc :: (GRPC.Server.rpc_req(), Stream.t() -> rpc_return)
+  @type rpc :: (Falco.Server.rpc_req(), Stream.t() -> rpc_return)
 
   defmacro __using__(opts) do
     quote bind_quoted: [opts: opts], location: :keep do
       service_mod = opts[:service]
       service_name = service_mod.__meta__(:name)
-      codecs = opts[:codecs] || [GRPC.Codec.Proto]
+      codecs = opts[:codecs] || [Falco.Codec.Proto]
       compressors = opts[:compressors] || []
 
       Enum.each(service_mod.__rpc_calls__, fn {name, _, _} = rpc ->
         func_name = name |> to_string |> Macro.underscore() |> String.to_atom()
         path = "/#{service_name}/#{name}"
-        grpc_type = GRPC.Service.grpc_type(rpc)
+        grpc_type = Falco.Service.grpc_type(rpc)
 
         def __call_rpc__(unquote(path), stream) do
-          GRPC.Server.call(
+          Falco.Server.call(
             unquote(service_mod),
             %{
               stream
@@ -68,7 +68,7 @@ defmodule Falco.Server do
       end)
 
       def __call_rpc__(_, stream) do
-        raise GRPC.RPCError, status: :unimplemented
+        raise Falco.RPCError, status: :unimplemented
       end
 
       def __meta__(:service), do: unquote(service_mod)
@@ -97,7 +97,7 @@ defmodule Falco.Server do
     if function_exported?(server, func_name, 2) do
       do_handle_request(req_s, res_s, stream, func_name)
     else
-      {:error, GRPC.RPCError.new(:unimplemented)}
+      {:error, Falco.RPCError.new(:unimplemented)}
     end
   end
 
@@ -109,7 +109,7 @@ defmodule Falco.Server do
        ) do
     {:ok, data} = adapter.read_body(payload)
 
-    case GRPC.Message.from_data(stream, data) do
+    case Falco.Message.from_data(stream, data) do
       {:ok, message} ->
         request = codec.decode(message, req_mod)
 
@@ -180,7 +180,7 @@ defmodule Falco.Server do
     try do
       next.(req, stream)
     rescue
-      e in GRPC.RPCError ->
+      e in Falco.RPCError ->
         {:error, e}
     catch
       kind, reason ->
@@ -201,25 +201,25 @@ defmodule Falco.Server do
     interceptors |> Enum.reverse()
   end
 
-  # Start the gRPC server. Only used in starting a server manually using `GRPC.Server.start(servers)`
+  # Start the gRPC server. Only used in starting a server manually using `Falco.Server.start(servers)`
   #
   # A generated `port` will be returned if the port is `0`.
   #
   # ## Examples
   #
-  #     iex> {:ok, _, port} = GRPC.Server.start(Greeter.Server, 50051)
-  #     iex> {:ok, _, port} = GRPC.Server.start(Greeter.Server, 0, ip: {:local, "path/to/unix.sock"})
+  #     iex> {:ok, _, port} = Falco.Server.start(Greeter.Server, 50051)
+  #     iex> {:ok, _, port} = Falco.Server.start(Greeter.Server, 0, ip: {:local, "path/to/unix.sock"})
   #
   # ## Options
   #
-  #   * `:cred` - a credential created by functions of `GRPC.Credential`,
+  #   * `:cred` - a credential created by functions of `Falco.Credential`,
   #               an insecure server will be created without this option
-  #   * `:adapter` - use a custom server adapter instead of default `GRPC.Adapter.Cowboy`
+  #   * `:adapter` - use a custom server adapter instead of default `Falco.Adapter.Cowboy`
   @doc false
   @spec start(servers_list, non_neg_integer, Keyword.t()) :: {atom, any, non_neg_integer}
   def start(servers, port, opts \\ []) do
-    adapter = Keyword.get(opts, :adapter, GRPC.Adapter.Cowboy)
-    servers = GRPC.Server.servers_to_map(servers)
+    adapter = Keyword.get(opts, :adapter, Falco.Adapter.Cowboy)
+    servers = Falco.Server.servers_to_map(servers)
     adapter.start(nil, servers, port, opts)
   end
 
@@ -227,8 +227,8 @@ defmodule Falco.Server do
   @spec start_endpoint(atom, non_neg_integer, Keyword.t()) :: {atom, any, non_neg_integer}
   def start_endpoint(endpoint, port, opts \\ []) do
     servers = endpoint.__meta__(:servers)
-    servers = GRPC.Server.servers_to_map(servers)
-    adapter = Keyword.get(opts, :adapter, GRPC.Adapter.Cowboy)
+    servers = Falco.Server.servers_to_map(servers)
+    adapter = Keyword.get(opts, :adapter, Falco.Adapter.Cowboy)
     adapter.start(endpoint, servers, port, opts)
   end
 
@@ -236,25 +236,25 @@ defmodule Falco.Server do
   #
   # ## Examples
   #
-  #     iex> GRPC.Server.stop(Greeter.Server)
+  #     iex> Falco.Server.stop(Greeter.Server)
   #
   # ## Options
   #
-  #   * `:adapter` - use a custom adapter instead of default `GRPC.Adapter.Cowboy`
+  #   * `:adapter` - use a custom adapter instead of default `Falco.Adapter.Cowboy`
   @doc false
   @spec stop(servers_list, Keyword.t()) :: any
   def stop(servers, opts \\ []) do
-    adapter = Keyword.get(opts, :adapter, GRPC.Adapter.Cowboy)
-    servers = GRPC.Server.servers_to_map(servers)
+    adapter = Keyword.get(opts, :adapter, Falco.Adapter.Cowboy)
+    servers = Falco.Server.servers_to_map(servers)
     adapter.stop(nil, servers)
   end
 
   @doc false
   @spec stop_endpoint(atom, Keyword.t()) :: any
   def stop_endpoint(endpoint, opts \\ []) do
-    adapter = Keyword.get(opts, :adapter, GRPC.Adapter.Cowboy)
+    adapter = Keyword.get(opts, :adapter, Falco.Adapter.Cowboy)
     servers = endpoint.__meta__(:servers)
-    servers = GRPC.Server.servers_to_map(servers)
+    servers = Falco.Server.servers_to_map(servers)
     adapter.stop(endpoint, servers)
   end
 
@@ -271,7 +271,7 @@ defmodule Falco.Server do
 
   ## Examples
 
-      iex> GRPC.Server.send_reply(stream, reply)
+      iex> Falco.Server.send_reply(stream, reply)
   """
   @spec send_reply(Stream.t(), struct) :: Stream.t()
   def send_reply(%{__interface__: interface} = stream, reply, opts \\ []) do

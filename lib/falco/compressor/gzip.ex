@@ -1,5 +1,5 @@
 defmodule Falco.Compressor.Gzip do
-  @behaviour GRPC.Compressor
+  @behaviour Falco.Compressor
 
   def name do
     "gzip"

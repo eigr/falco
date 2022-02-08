@@ -4,11 +4,11 @@ defmodule Falco.Adapter.Cowboy.Handler do
   # A cowboy handler accepting all requests and calls corresponding functions
   # defined by users.
 
-  alias GRPC.Transport.HTTP2
-  alias GRPC.RPCError
+  alias Falco.Transport.HTTP2
+  alias Falco.RPCError
   require Logger
 
-  @adapter GRPC.Adapter.Cowboy
+  @adapter Falco.Adapter.Cowboy
   @default_trailers HTTP2.server_trailers()
   @type state :: %{
           pid: pid,
@@ -18,7 +18,7 @@ defmodule Falco.Adapter.Cowboy.Handler do
           pending_reader: nil
         }
 
-  @spec init(map, {atom, GRPC.Server.servers_map(), map}) :: {:cowboy_loop, map, map}
+  @spec init(map, {atom, Falco.Server.servers_map(), map}) :: {:cowboy_loop, map, map}
   def init(req, {endpoint, servers, opts} = state) do
     path = :cowboy_req.path(req)
 
@@ -26,7 +26,7 @@ defmodule Falco.Adapter.Cowboy.Handler do
          {:ok, codec} <- find_codec(req, server),
          # can be nil
          {:ok, compressor} <- find_compressor(req, server) do
-      stream = %GRPC.Server.Stream{
+      stream = %Falco.Server.Stream{
         server: server,
         endpoint: endpoint,
         adapter: @adapter,
@@ -48,7 +48,7 @@ defmodule Falco.Adapter.Cowboy.Handler do
           Process.send_after(
             self(),
             {:handling_timeout, self()},
-            GRPC.Transport.Utils.decode_timeout(timeout)
+            Falco.Transport.Utils.decode_timeout(timeout)
           )
         end
 
@@ -62,7 +62,7 @@ defmodule Falco.Adapter.Cowboy.Handler do
   end
 
   defp find_server(servers, path) do
-    case Map.fetch(servers, GRPC.Server.service_name(path)) do
+    case Map.fetch(servers, Falco.Server.service_name(path)) do
       s = {:ok, _} ->
         s
 
@@ -254,7 +254,7 @@ defmodule Falco.Adapter.Cowboy.Handler do
       req = send_error(req, state, msg)
       {:stop, req, state}
     else
-      case GRPC.Message.to_data(data, compressor: compressor) do
+      case Falco.Message.to_data(data, compressor: compressor) do
         {:ok, data, _size} ->
           req = check_sent_resp(req)
           :cowboy_req.stream_body(data, is_fin, req)
@@ -283,13 +283,13 @@ defmodule Falco.Adapter.Cowboy.Handler do
 
   def info({:stream_trailers, trailers}, req, state) do
     metadata = Map.get(state, :resp_trailers, %{})
-    metadata = GRPC.Transport.HTTP2.encode_metadata(metadata)
+    metadata = Falco.Transport.HTTP2.encode_metadata(metadata)
     send_stream_trailers(req, Map.merge(metadata, trailers))
     {:ok, req, state}
   end
 
   def info({:handling_timeout, _}, req, state = %{pid: pid}) do
-    error = %RPCError{status: GRPC.Status.deadline_exceeded(), message: "Deadline expired"}
+    error = %RPCError{status: Falco.Status.deadline_exceeded(), message: "Deadline expired"}
     trailers = HTTP2.server_trailers(error.status, error.message)
     exit_handler(pid, :timeout)
     req = send_error_trailers(req, trailers)
@@ -322,7 +322,7 @@ defmodule Falco.Adapter.Cowboy.Handler do
 
   # unknown error raised from rpc
   def info({:EXIT, pid, {:handle_error, _kind}}, req, state = %{pid: pid}) do
-    error = %RPCError{status: GRPC.Status.unknown(), message: "Internal Server Error"}
+    error = %RPCError{status: Falco.Status.unknown(), message: "Internal Server Error"}
     trailers = HTTP2.server_trailers(error.status, error.message)
     exit_handler(pid, :error)
     req = send_error_trailers(req, trailers)
@@ -331,7 +331,7 @@ defmodule Falco.Adapter.Cowboy.Handler do
 
   def info({:EXIT, pid, {reason, stacktrace}}, req, state = %{pid: pid}) do
     Logger.error(Exception.format(:error, reason, stacktrace))
-    error = %RPCError{status: GRPC.Status.unknown(), message: "Internal Server Error"}
+    error = %RPCError{status: Falco.Status.unknown(), message: "Internal Server Error"}
     trailers = HTTP2.server_trailers(error.status, error.message)
     exit_handler(pid, reason)
     req = send_error_trailers(req, trailers)
@@ -365,7 +365,7 @@ defmodule Falco.Adapter.Cowboy.Handler do
       end
 
     case result do
-      {:error, %GRPC.RPCError{} = e} ->
+      {:error, %Falco.RPCError{} = e} ->
         exit({e, ""})
 
       {:error, %{kind: kind}} ->
@@ -382,13 +382,13 @@ defmodule Falco.Adapter.Cowboy.Handler do
     case result do
       {:ok, stream, response} ->
         stream
-        |> GRPC.Server.send_reply(response)
-        |> GRPC.Server.send_trailers(@default_trailers)
+        |> Falco.Server.send_reply(response)
+        |> Falco.Server.send_trailers(@default_trailers)
 
         {:ok, stream}
 
       {:ok, stream} ->
-        GRPC.Server.send_trailers(stream, @default_trailers)
+        Falco.Server.send_trailers(stream, @default_trailers)
         {:ok, stream}
 
       error ->

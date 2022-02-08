@@ -3,13 +3,13 @@ defmodule Falco.Server.Stream do
   A struct as an argument that servers get in rpc function definitions and use to handle headers,
   send streaming replies.
 
-  Notice that you MUST use new stream returned by `GRPC.Server` as an argument to invoke next
-  functions defined by `GRPC.Server`.
+  Notice that you MUST use new stream returned by `Falco.Server` as an argument to invoke next
+  functions defined by `Falco.Server`.
 
   ## Fields
 
     * `:server`            - user defined gRPC server module
-    * `:adapter`           - a server adapter module, like `GRPC.Adapter.Cowboy`
+    * `:adapter`           - a server adapter module, like `Falco.Adapter.Cowboy`
     * `request_mod`        - the request module, or nil for untyped protocols
     * `response_mod`       - the response module, or nil for untyped protocols
     * `:codec`             - the codec
@@ -31,7 +31,7 @@ defmodule Falco.Server.Stream do
           adapter: atom,
           local: any,
           # compressor mainly is used in client decompressing, responses compressing should be set by
-          # `GRPC.Server.set_compressor`
+          # `Falco.Server.set_compressor`
           compressor: module | nil,
           __interface__: map
         }
@@ -44,7 +44,7 @@ defmodule Falco.Server.Stream do
             rpc: nil,
             request_mod: nil,
             response_mod: nil,
-            codec: GRPC.Codec.Proto,
+            codec: Falco.Codec.Proto,
             payload: nil,
             adapter: nil,
             local: nil,
@@ -52,7 +52,7 @@ defmodule Falco.Server.Stream do
             __interface__: %{send_reply: &__MODULE__.send_reply/3}
 
   def send_reply(%{adapter: adapter, codec: codec} = stream, reply, opts) do
-    # {:ok, data, _size} = reply |> codec.encode() |> GRPC.Message.to_data()
+    # {:ok, data, _size} = reply |> codec.encode() |> Falco.Message.to_data()
     data = codec.encode(reply)
     adapter.send_reply(stream.payload, data, opts)
     stream

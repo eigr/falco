@@ -1,20 +1,20 @@
 defmodule Falco.Adapter.Cowboy do
   @moduledoc false
 
-  # A server(`GRPC.Server`) adapter using Cowboy.
-  # Cowboy req will be stored in `:payload` of `GRPC.Server.Stream`.
+  # A server(`Falco.Server`) adapter using Cowboy.
+  # Cowboy req will be stored in `:payload` of `Falco.Server.Stream`.
 
   # Waiting for this is released on hex https://github.com/ninenines/ranch/pull/227
   @dialyzer {:nowarn_function, running_info: 4}
 
   require Logger
-  alias GRPC.Adapter.Cowboy.Handler, as: Handler
+  alias Falco.Adapter.Cowboy.Handler, as: Handler
 
   @default_num_acceptors 20
   @default_max_connections 16384
 
-  # Only used in starting a server manually using `GRPC.Server.start(servers)`
-  @spec start(atom, GRPC.Server.servers_map(), non_neg_integer, keyword) ::
+  # Only used in starting a server manually using `Falco.Server.start(servers)`
+  @spec start(atom, Falco.Server.servers_map(), non_neg_integer, keyword) ::
           {:ok, pid, non_neg_integer}
   def start(endpoint, servers, port, opts) do
     start_args = cowboy_start_args(endpoint, servers, port, opts)
@@ -30,7 +30,7 @@ defmodule Falco.Adapter.Cowboy do
     end
   end
 
-  @spec child_spec(atom, GRPC.Server.servers_map(), non_neg_integer, Keyword.t()) ::
+  @spec child_spec(atom, Falco.Server.servers_map(), non_neg_integer, Keyword.t()) ::
           Supervisor.Spec.spec()
   def child_spec(endpoint, servers, port, opts) do
     [ref, trans_opts, proto_opts] = cowboy_start_args(endpoint, servers, port, opts)
@@ -53,7 +53,7 @@ defmodule Falco.Adapter.Cowboy do
   end
 
   # spec: :supervisor.mfargs doesn't work
-  @spec start_link(atom, atom, GRPC.Server.servers_map(), any) :: {:ok, pid} | {:error, any}
+  @spec start_link(atom, atom, Falco.Server.servers_map(), any) :: {:ok, pid} | {:error, any}
   def start_link(scheme, endpoint, servers, {m, f, [ref | _] = a}) do
     Logger.info(
       "Starting #{endpoint} on #{scheme} with Module #{inspect(m)} and Function #{inspect(f)} and Args #{inspect(a)}"
@@ -77,17 +77,17 @@ defmodule Falco.Adapter.Cowboy do
     end
   end
 
-  @spec stop(atom, GRPC.Server.servers_map()) :: :ok | {:error, :not_found}
+  @spec stop(atom, Falco.Server.servers_map()) :: :ok | {:error, :not_found}
   def stop(endpoint, servers) do
     :cowboy.stop_listener(servers_name(endpoint, servers))
   end
 
-  @spec read_body(GRPC.Adapter.Cowboy.Handler.state()) :: {:ok, binary}
+  @spec read_body(Falco.Adapter.Cowboy.Handler.state()) :: {:ok, binary}
   def read_body(%{pid: pid}) do
     Handler.read_full_body(pid)
   end
 
-  @spec reading_stream(GRPC.Adapter.Cowboy.Handler.state()) :: Enumerable.t()
+  @spec reading_stream(Falco.Adapter.Cowboy.Handler.state()) :: Enumerable.t()
   def reading_stream(%{pid: pid}) do
     Stream.unfold(%{pid: pid, need_more: true, buffer: <<>>}, fn acc -> read_stream(acc) end)
   end
@@ -109,7 +109,7 @@ defmodule Falco.Adapter.Cowboy do
   end
 
   defp read_stream(%{buffer: buffer} = s) do
-    case GRPC.Message.get_message(buffer) do
+    case Falco.Message.get_message(buffer) do
       {message, rest} ->
         new_s = s |> Map.put(:buffer, rest)
         {message, new_s}
@@ -119,7 +119,7 @@ defmodule Falco.Adapter.Cowboy do
     end
   end
 
-  @spec send_reply(GRPC.Adapter.Cowboy.Handler.state(), binary, keyword) :: any
+  @spec send_reply(Falco.Adapter.Cowboy.Handler.state(), binary, keyword) :: any
   def send_reply(%{pid: pid}, data, opts) do
     Handler.stream_body(pid, data, opts, :nofin)
   end
@@ -159,7 +159,7 @@ defmodule Falco.Adapter.Cowboy do
   defp cowboy_start_args(endpoint, servers, port, opts) do
     dispatch =
       :cowboy_router.compile([
-        {:_, [{:_, GRPC.Adapter.Cowboy.Handler, {endpoint, servers, Enum.into(opts, %{})}}]}
+        {:_, [{:_, Falco.Adapter.Cowboy.Handler, {endpoint, servers, Enum.into(opts, %{})}}]}
       ])
 
     idle_timeout = Keyword.get(opts, :idle_timeout, :infinity)

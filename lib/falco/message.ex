@@ -2,7 +2,7 @@ defmodule Falco.Message do
   use Bitwise, only_operators: true
   @max_message_length 1 <<< (32 - 1)
 
-  alias GRPC.RPCError
+  alias Falco.RPCError
 
   @moduledoc false
 
@@ -22,10 +22,10 @@ defmodule Falco.Message do
   ## Examples
 
       iex> message = <<1, 2, 3, 4, 5, 6, 7, 8>>
-      iex> GRPC.Message.to_data(message)
+      iex> Falco.Message.to_data(message)
       {:ok, <<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8>>, 13}
       iex> message = <<1, 2, 3, 4, 5, 6, 7, 8, 9>>
-      iex> GRPC.Message.to_data(message, %{max_message_length: 8})
+      iex> Falco.Message.to_data(message, %{max_message_length: 8})
       {:error, "Encoded message is too large (9 bytes)"}
   """
   @spec to_data(iodata, map | Keyword.t()) ::
@@ -56,7 +56,7 @@ defmodule Falco.Message do
 
   ## Examples
 
-      iex> GRPC.Message.from_data(<<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8>>)
+      iex> Falco.Message.from_data(<<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8>>)
       <<1, 2, 3, 4, 5, 6, 7, 8>>
   """
   @spec from_data(binary) :: binary
@@ -70,10 +70,10 @@ defmodule Falco.Message do
 
   ## Examples
 
-      iex> GRPC.Message.from_data(%{compressor: nil}, <<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8>>)
+      iex> Falco.Message.from_data(%{compressor: nil}, <<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8>>)
       {:ok, <<1, 2, 3, 4, 5, 6, 7, 8>>}
   """
-  @spec from_data(map, binary) :: {:ok, binary} | {:error, GRPC.RPCError.t()}
+  @spec from_data(map, binary) :: {:ok, binary} | {:error, Falco.RPCError.t()}
   def from_data(%{compressor: nil}, data) do
     case data do
       <<0, _length::bytes-size(4), message::binary>> ->
@@ -134,11 +134,11 @@ defmodule Falco.Message do
 
   ## Examples
 
-      iex> GRPC.Message.get_message(<<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0>>)
+      iex> Falco.Message.get_message(<<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8, 0, 0, 0>>)
       {{0, <<1, 2, 3, 4, 5, 6, 7, 8>>}, <<0, 0, 0>>}
-      iex> GRPC.Message.get_message(<<1, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8>>)
+      iex> Falco.Message.get_message(<<1, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7, 8>>)
       {{1, <<1, 2, 3, 4, 5, 6, 7, 8>>}, <<>>}
-      iex> GRPC.Message.get_message(<<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7>>)
+      iex> Falco.Message.get_message(<<0, 0, 0, 0, 8, 1, 2, 3, 4, 5, 6, 7>>)
       false
   """
   def get_message(

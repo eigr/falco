@@ -6,7 +6,7 @@ defmodule Benchmark.Manager do
       {:bytebuf_params, _} -> :bytebuf
       {:simple_params, _} -> :protobuf
       {:complex_params, _} -> :complex
-      _ -> raise GRPC.RPCError, status: :invalid_argument
+      _ -> raise Falco.RPCError, status: :invalid_argument
     end
   end
 

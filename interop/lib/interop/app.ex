@@ -5,7 +5,7 @@ defmodule Interop.App do
     import Supervisor.Spec
 
     children = [
-      supervisor(GRPC.Server.Supervisor, [{Interop.Endpoint, 10000}])
+      supervisor(Falco.Server.Supervisor, [{Interop.Endpoint, 10000}])
     ]
 
     GRPCPrometheus.ServerInterceptor.setup()

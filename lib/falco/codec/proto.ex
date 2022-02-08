@@ -1,5 +1,5 @@
 defmodule Falco.Codec.Proto do
-  @behaviour GRPC.Codec
+  @behaviour Falco.Codec
 
   def name() do
     "proto"

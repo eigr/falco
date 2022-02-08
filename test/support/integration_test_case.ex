@@ -5,32 +5,32 @@ defmodule Falco.Integration.TestCase do
 
   using do
     quote do
-      import GRPC.Integration.TestCase
+      import Falco.Integration.TestCase
     end
   end
 
   def run_server(servers, func, port \\ 0) do
-    {:ok, _pid, port} = GRPC.Server.start(servers, port)
+    {:ok, _pid, port} = Falco.Server.start(servers, port)
 
     try do
       func.(port)
     after
-      :ok = GRPC.Server.stop(servers)
+      :ok = Falco.Server.stop(servers)
     end
   end
 
   def run_endpoint(endpoint, func, port \\ 0) do
-    {:ok, _pid, port} = GRPC.Server.start_endpoint(endpoint, port)
+    {:ok, _pid, port} = Falco.Server.start_endpoint(endpoint, port)
 
     try do
       func.(port)
     after
-      :ok = GRPC.Server.stop_endpoint(endpoint, [])
+      :ok = Falco.Server.stop_endpoint(endpoint, [])
     end
   end
 
   def reconnect_server(server, port, retry \\ 3) do
-    result = GRPC.Server.start(server, port)
+    result = Falco.Server.start(server, port)
 
     case result do
       {:ok, _, ^port} ->

@@ -1,6 +1,6 @@
 defmodule Grpc.Testing.WorkerService.Server do
-  use GRPC.Server, service: Grpc.Testing.WorkerService.Service
-  alias GRPC.Server
+  use Falco.Server, service: Grpc.Testing.WorkerService.Service
+  alias Falco.Server
 
   alias Benchmark.ServerManager
   alias Benchmark.ClientManager

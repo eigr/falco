@@ -2,13 +2,13 @@ defmodule Falco.Adapter.Gun do
   @moduledoc false
 
   # A client adapter using Gun.
-  # conn_pid and stream_ref is stored in `GRPC.Server.Stream`.
+  # conn_pid and stream_ref is stored in `Falco.Server.Stream`.
 
   @default_transport_opts [nodelay: true]
   @default_http2_opts %{settings_timeout: :infinity}
   @max_retries 100
 
-  @spec connect(GRPC.Channel.t(), any) :: {:ok, GRPC.Channel.t()} | {:error, any}
+  @spec connect(Falco.Channel.t(), any) :: {:ok, Falco.Channel.t()} | {:error, any}
   def connect(channel, nil), do: connect(channel, %{})
   def connect(%{scheme: "https"} = channel, opts), do: connect_securely(channel, opts)
   def connect(channel, opts), do: connect_insecurely(channel, opts)
@@ -87,10 +87,10 @@ defmodule Falco.Adapter.Gun do
   defp open(host, port, open_opts),
     do: :gun.open(String.to_charlist(host), port, open_opts)
 
-  @spec send_request(GRPC.Client.Stream.t(), binary, map) :: GRPC.Client.Stream.t()
+  @spec send_request(Falco.Client.Stream.t(), binary, map) :: Falco.Client.Stream.t()
   def send_request(stream, message, opts) do
     stream_ref = do_send_request(stream, message, opts)
-    GRPC.Client.Stream.put_payload(stream, :stream_ref, stream_ref)
+    Falco.Client.Stream.put_payload(stream, :stream_ref, stream_ref)
   end
 
   defp do_send_request(
@@ -98,8 +98,8 @@ defmodule Falco.Adapter.Gun do
          message,
          opts
        ) do
-    headers = GRPC.Transport.HTTP2.client_headers_without_reserved(stream, opts)
-    {:ok, data, _} = GRPC.Message.to_data(message, opts)
+    headers = Falco.Transport.HTTP2.client_headers_without_reserved(stream, opts)
+    {:ok, data, _} = Falco.Message.to_data(message, opts)
     :gun.post(conn_pid, path, headers, data)
   end
 
@@ -107,15 +107,15 @@ defmodule Falco.Adapter.Gun do
         %{channel: %{adapter_payload: %{conn_pid: conn_pid}}, path: path} = stream,
         opts
       ) do
-    headers = GRPC.Transport.HTTP2.client_headers_without_reserved(stream, opts)
+    headers = Falco.Transport.HTTP2.client_headers_without_reserved(stream, opts)
     stream_ref = :gun.post(conn_pid, path, headers)
-    GRPC.Client.Stream.put_payload(stream, :stream_ref, stream_ref)
+    Falco.Client.Stream.put_payload(stream, :stream_ref, stream_ref)
   end
 
   def send_data(%{channel: channel, payload: %{stream_ref: stream_ref}} = stream, message, opts) do
     conn_pid = channel.adapter_payload[:conn_pid]
     fin = if opts[:send_end_stream], do: :fin, else: :nofin
-    {:ok, data, _} = GRPC.Message.to_data(message, opts)
+    {:ok, data, _} = Falco.Message.to_data(message, opts)
     :gun.data(conn_pid, stream_ref, fin, data)
     stream
   end
@@ -140,8 +140,8 @@ defmodule Falco.Adapter.Gun do
 
       other ->
         {:error,
-         GRPC.RPCError.exception(
-           GRPC.Status.unknown(),
+         Falco.RPCError.exception(
+           Falco.Status.unknown(),
            "unexpected when waiting for headers: #{inspect(other)}"
          )}
     end
@@ -160,8 +160,8 @@ defmodule Falco.Adapter.Gun do
 
       other ->
         {:error,
-         GRPC.RPCError.exception(
-           GRPC.Status.unknown(),
+         Falco.RPCError.exception(
+           Falco.Status.unknown(),
            "unexpected when waiting for data: #{inspect(other)}"
          )}
     end
@@ -184,8 +184,8 @@ defmodule Falco.Adapter.Gun do
           case headers["grpc-status"] do
             nil ->
               {:error,
-               GRPC.RPCError.exception(
-                 GRPC.Status.internal(),
+               Falco.RPCError.exception(
+                 Falco.Status.internal(),
                  "shouldn't finish when getting headers"
                )}
 
@@ -194,15 +194,15 @@ defmodule Falco.Adapter.Gun do
 
             _ ->
               {:error,
-               GRPC.RPCError.exception(
+               Falco.RPCError.exception(
                  String.to_integer(headers["grpc-status"]),
                  headers["grpc-message"]
                )}
           end
         else
           {:error,
-           GRPC.RPCError.exception(
-             GRPC.Status.internal(),
+           Falco.RPCError.exception(
+             Falco.Status.internal(),
              "status got is #{status} instead of 200"
            )}
         end
@@ -213,7 +213,7 @@ defmodule Falco.Adapter.Gun do
 
           if headers["grpc-status"] && headers["grpc-status"] != "0" do
             {:error,
-             GRPC.RPCError.exception(
+             Falco.RPCError.exception(
                String.to_integer(headers["grpc-status"]),
                headers["grpc-message"]
              )}
@@ -222,8 +222,8 @@ defmodule Falco.Adapter.Gun do
           end
         else
           {:error,
-           GRPC.RPCError.exception(
-             GRPC.Status.internal(),
+           Falco.RPCError.exception(
+             Falco.Status.internal(),
              "status got is #{status} instead of 200"
            )}
         end
@@ -239,23 +239,23 @@ defmodule Falco.Adapter.Gun do
 
       {:error, :timeout} ->
         {:error,
-         GRPC.RPCError.exception(
-           GRPC.Status.deadline_exceeded(),
+         Falco.RPCError.exception(
+           Falco.Status.deadline_exceeded(),
            "timeout when waiting for server"
          )}
 
       {:error, {reason, msg}} when reason in [:stream_error, :connection_error] ->
         {:error,
-         GRPC.RPCError.exception(GRPC.Status.internal(), "#{inspect(reason)}: #{inspect(msg)}")}
+         Falco.RPCError.exception(Falco.Status.internal(), "#{inspect(reason)}: #{inspect(msg)}")}
 
       {:error, {reason, msg}} ->
         {:error,
-         GRPC.RPCError.exception(GRPC.Status.unknown(), "#{inspect(reason)}: #{inspect(msg)}")}
+         Falco.RPCError.exception(Falco.Status.unknown(), "#{inspect(reason)}: #{inspect(msg)}")}
 
       other ->
         {:error,
-         GRPC.RPCError.exception(
-           GRPC.Status.unknown(),
+         Falco.RPCError.exception(
+           Falco.Status.unknown(),
            "unexpected message when waiting for server: #{inspect(other)}"
          )}
     end

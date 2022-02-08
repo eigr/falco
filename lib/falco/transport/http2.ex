@@ -3,8 +3,8 @@ defmodule Falco.Transport.HTTP2 do
 
   # A module providing functions for sending HTTP/2 requests.
 
-  alias GRPC.Transport.Utils
-  alias GRPC.Status
+  alias Falco.Transport.Utils
+  alias Falco.Status
 
   require Logger
 
@@ -23,7 +23,7 @@ defmodule Falco.Transport.HTTP2 do
   @doc """
   Now we may not need this because gun already handles the pseudo headers.
   """
-  @spec client_headers(GRPC.Client.Stream.t(), map) :: [{String.t(), String.t()}]
+  @spec client_headers(Falco.Client.Stream.t(), map) :: [{String.t(), String.t()}]
   def client_headers(%{channel: channel, path: path} = s, opts \\ %{}) do
     [
       {":method", "POST"},
@@ -33,12 +33,14 @@ defmodule Falco.Transport.HTTP2 do
     ] ++ client_headers_without_reserved(s, opts)
   end
 
-  @spec client_headers_without_reserved(GRPC.Client.Stream.t(), map) :: [{String.t(), String.t()}]
+  @spec client_headers_without_reserved(Falco.Client.Stream.t(), map) :: [
+          {String.t(), String.t()}
+        ]
   def client_headers_without_reserved(%{codec: codec} = stream, opts \\ %{}) do
     [
       # It seems only gRPC implemenations only support "application/grpc", so we support :content_type now.
       {"content-type", content_type(opts[:content_type], codec)},
-      {"user-agent", "grpc-elixir/#{opts[:grpc_version] || GRPC.version()}"},
+      {"user-agent", "grpc-elixir/#{opts[:grpc_version] || Falco.version()}"},
       {"te", "trailers"}
     ]
     |> append_compressor(stream.compressor)
@@ -58,7 +60,7 @@ defmodule Falco.Transport.HTTP2 do
   defp content_type(_, codec) do
     # Some gRPC implementations don't support application/grpc+xyz,
     # to avoid this kind of trouble, use application/grpc by default
-    if codec == GRPC.Codec.Proto do
+    if codec == Falco.Codec.Proto do
       "application/grpc"
     else
       "application/grpc+#{codec.name}"

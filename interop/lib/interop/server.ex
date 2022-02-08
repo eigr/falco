@@ -1,6 +1,6 @@
 defmodule Interop.Server do
   @moduledoc false
-  use GRPC.Server, service: Grpc.Testing.TestService.Service, compressors: [GRPC.Compressor.Gzip]
+  use Falco.Server, service: Grpc.Testing.TestService.Service, compressors: [Falco.Compressor.Gzip]
 
   import ExUnit.Assertions, only: [assert: 1, refute: 1]
 
@@ -10,7 +10,7 @@ defmodule Interop.Server do
 
   def unary_call(req, stream) do
     if req.expect_compressed do
-      headers = GRPC.Stream.get_headers(stream)
+      headers = Falco.Stream.get_headers(stream)
       if req.expect_compressed.value do
         assert %{"grpc-encoding" => "gzip"} = headers
       else
@@ -20,7 +20,7 @@ defmodule Interop.Server do
 
     case req do
       %{response_compressed: %{value: true}} ->
-        GRPC.Server.set_compressor(stream, GRPC.Compressor.Gzip)
+        Falco.Server.set_compressor(stream, Falco.Compressor.Gzip)
       _ -> :ok
     end
 
@@ -28,7 +28,7 @@ defmodule Interop.Server do
     status = req.response_status
 
     if status && status.code != 0 do
-      raise GRPC.RPCError, status: status.code, message: status.message
+      raise Falco.RPCError, status: status.code, message: status.message
     end
 
     payload = Grpc.Testing.Payload.new(body: String.duplicate(<<0>>, req.response_size))
@@ -43,7 +43,7 @@ defmodule Interop.Server do
   end
 
   def streaming_output_call(req, stream) do
-    GRPC.Server.set_compressor(stream, GRPC.Compressor.Gzip)
+    Falco.Server.set_compressor(stream, Falco.Compressor.Gzip)
     Enum.map(req.response_parameters, fn params ->
       resp = Grpc.Testing.StreamingOutputCallResponse.new(payload: %{body: String.duplicate(<<0>>, params.size)})
       opts = if params.compressed == false do
@@ -51,12 +51,12 @@ defmodule Interop.Server do
       else
         []
       end
-      GRPC.Server.send_reply(stream, resp, opts)
+      Falco.Server.send_reply(stream, resp, opts)
     end)
     # req.response_parameters
     # |> Enum.map(&Grpc.Testing.Payload.new(body: String.duplicate(<<0>>, &1.size)))
     # |> Enum.map(&Grpc.Testing.StreamingOutputCallResponse.new(payload: &1))
-    # |> Enum.each(&GRPC.Server.send_reply(stream, &1))
+    # |> Enum.each(&Falco.Server.send_reply(stream, &1))
   end
 
   def full_duplex_call(req_enum, stream) do
@@ -66,7 +66,7 @@ defmodule Interop.Server do
       status = req.response_status
 
       if status && status.code != 0 do
-        raise GRPC.RPCError, status: status.code, message: status.message
+        raise Falco.RPCError, status: status.code, message: status.message
       end
 
       resp_param = List.first(req.response_parameters)
@@ -75,20 +75,20 @@ defmodule Interop.Server do
         size = resp_param.size
         payload = Grpc.Testing.Payload.new(body: String.duplicate(<<0>>, size))
         res = Grpc.Testing.StreamingOutputCallResponse.new(payload: payload)
-        GRPC.Server.send_reply(stream, res)
+        Falco.Server.send_reply(stream, res)
       end
     end)
   end
 
   defp handle_metadata(stream) do
-    headers = GRPC.Stream.get_headers(stream)
+    headers = Falco.Stream.get_headers(stream)
 
     if header = headers["x-grpc-test-echo-initial"] do
-      GRPC.Server.send_headers(stream, %{"x-grpc-test-echo-initial" => header})
+      Falco.Server.send_headers(stream, %{"x-grpc-test-echo-initial" => header})
     end
 
     if header = headers["x-grpc-test-echo-trailing-bin"] do
-      GRPC.Server.set_trailers(stream, %{"x-grpc-test-echo-trailing-bin" => header})
+      Falco.Server.set_trailers(stream, %{"x-grpc-test-echo-trailing-bin" => header})
     end
   end
 end

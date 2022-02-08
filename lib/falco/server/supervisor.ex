@@ -13,7 +13,7 @@ defmodule Falco.Server.Supervisor do
           import Supervisor.Spec
 
           children = [
-            supervisor(GRPC.Server.Supervisor, [{Your.Endpoint, 50051(, opts)}])
+            supervisor(Falco.Server.Supervisor, [{Your.Endpoint, 50051(, opts)}])
           ]
 
           opts = [strategy: :one_for_one, name: __MODULE__]
@@ -29,7 +29,7 @@ defmodule Falco.Server.Supervisor do
   View `child_spec/3` for opts.
   """
 
-  @default_adapter GRPC.Adapter.Cowboy
+  @default_adapter Falco.Adapter.Cowboy
   require Logger
 
   def start_link(endpoint) do
@@ -62,7 +62,7 @@ defmodule Falco.Server.Supervisor do
 
   ## Options
 
-    * `:cred` - a credential created by functions of `GRPC.Credential`,
+    * `:cred` - a credential created by functions of `Falco.Credential`,
       an insecure server will be created without this option
   """
   @spec child_spec(atom | [atom], integer, Keyword.t()) :: Supervisor.Spec.spec()
@@ -75,20 +75,20 @@ defmodule Falco.Server.Supervisor do
       rescue
         FunctionClauseError ->
           Logger.warn(
-            "deprecated: servers as argument of GRPC.Server.Supervisor, please use GRPC.Endpoint"
+            "deprecated: servers as argument of Falco.Server.Supervisor, please use Falco.Endpoint"
           )
 
           {nil, endpoint}
       end
 
     adapter = Keyword.get(opts, :adapter, @default_adapter)
-    servers = GRPC.Server.servers_to_map(servers)
+    servers = Falco.Server.servers_to_map(servers)
     adapter.child_spec(endpoint, servers, port, opts)
   end
 
   def child_spec(servers, port, opts) when is_list(servers) do
     adapter = Keyword.get(opts, :adapter, @default_adapter)
-    servers = GRPC.Server.servers_to_map(servers)
+    servers = Falco.Server.servers_to_map(servers)
     adapter.child_spec(nil, servers, port, opts)
   end
 

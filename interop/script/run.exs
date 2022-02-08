@@ -7,10 +7,10 @@ IO.puts "Rounds: #{rounds}; concurrency: #{concurrency}; port: #{port}"
 IO.puts ""
 
 alias Interop.Client
-{:ok, _pid, port} = GRPC.Server.start_endpoint(Interop.Endpoint, port)
+{:ok, _pid, port} = Falco.Server.start_endpoint(Interop.Endpoint, port)
 
 stream = Task.async_stream(1..concurrency, fn cli ->
-  ch = Client.connect("127.0.0.1", port, interceptors: [GRPCPrometheus.ClientInterceptor, GRPC.Logger.Client])
+  ch = Client.connect("127.0.0.1", port, interceptors: [GRPCPrometheus.ClientInterceptor, Falco.Logger.Client])
   run = fn(i) ->
     IO.puts("Client##{cli}, Round #{i}")
     Client.empty_unary!(ch)
@@ -55,4 +55,4 @@ end)
 # Helper.flush()
 
 IO.puts("Succeed!")
-:ok = GRPC.Server.stop_endpoint(Interop.Endpoint)
+:ok = Falco.Server.stop_endpoint(Interop.Endpoint)

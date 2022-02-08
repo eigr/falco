@@ -1,9 +1,9 @@
 defmodule Falco.Integration.ServiceTest do
-  use GRPC.Integration.TestCase
+  use Falco.Integration.TestCase
 
   defmodule FeatureServer do
-    use GRPC.Server, service: Routeguide.RouteGuide.Service
-    alias GRPC.Server
+    use Falco.Server, service: Routeguide.RouteGuide.Service
+    alias Falco.Server
 
     def get_feature(point, _stream) do
       simple_feature(point)
@@ -62,7 +62,7 @@ defmodule Falco.Integration.ServiceTest do
 
   test "unary RPC works" do
     run_server(FeatureServer, fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       point = Routeguide.Point.new(latitude: 409_146_138, longitude: -746_188_906)
       {:ok, feature} = channel |> Routeguide.RouteGuide.Stub.get_feature(point)
       assert feature == Routeguide.Feature.new(location: point, name: "409146138,-746188906")
@@ -71,7 +71,7 @@ defmodule Falco.Integration.ServiceTest do
 
   test "server streaming RPC works" do
     run_server(FeatureServer, fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       low = Routeguide.Point.new(latitude: 400_000_000, longitude: -750_000_000)
       high = Routeguide.Point.new(latitude: 420_000_000, longitude: -730_000_000)
       rect = Routeguide.Rectangle.new(lo: low, hi: high)
@@ -86,20 +86,20 @@ defmodule Falco.Integration.ServiceTest do
 
   test "client streaming RPC works" do
     run_server(FeatureServer, fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       point1 = Routeguide.Point.new(latitude: 400_000_000, longitude: -750_000_000)
       point2 = Routeguide.Point.new(latitude: 420_000_000, longitude: -730_000_000)
       stream = channel |> Routeguide.RouteGuide.Stub.record_route()
-      GRPC.Stub.send_request(stream, point1)
-      GRPC.Stub.send_request(stream, point2, end_stream: true)
-      {:ok, res} = GRPC.Stub.recv(stream)
+      Falco.Stub.send_request(stream, point1)
+      Falco.Stub.send_request(stream, point2, end_stream: true)
+      {:ok, res} = Falco.Stub.recv(stream)
       assert %Routeguide.RouteSummary{point_count: 2} = res
     end)
   end
 
   test "bidirectional streaming RPC works" do
     run_server(FeatureServer, fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       stream = channel |> Routeguide.RouteGuide.Stub.route_chat()
 
       task =
@@ -108,11 +108,11 @@ defmodule Falco.Integration.ServiceTest do
             point = Routeguide.Point.new(latitude: 0, longitude: rem(i, 3) + 1)
             note = Routeguide.RouteNote.new(location: point, message: "Message #{i}")
             opts = if i == 6, do: [end_stream: true], else: []
-            GRPC.Stub.send_request(stream, note, opts)
+            Falco.Stub.send_request(stream, note, opts)
           end)
         end)
 
-      {:ok, result_enum} = GRPC.Stub.recv(stream)
+      {:ok, result_enum} = Falco.Stub.recv(stream)
       Task.await(task)
 
       notes =
@@ -131,7 +131,7 @@ defmodule Falco.Integration.ServiceTest do
     run_server(
       FeatureServer,
       fn port ->
-        {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+        {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
         stream = channel |> Routeguide.RouteGuide.Stub.async_route_chat()
 
         task =
@@ -140,11 +140,11 @@ defmodule Falco.Integration.ServiceTest do
               point = Routeguide.Point.new(latitude: 0, longitude: rem(i, 3) + 1)
               note = Routeguide.RouteNote.new(location: point, message: "Message #{i}")
               # note that we don't send end of stream yet here
-              GRPC.Stub.send_request(stream, note, [])
+              Falco.Stub.send_request(stream, note, [])
             end)
           end)
 
-        result = GRPC.Stub.recv(stream)
+        result = Falco.Stub.recv(stream)
 
         {:ok, result_enum} = result
 
@@ -157,7 +157,7 @@ defmodule Falco.Integration.ServiceTest do
             if note.message == "Reply: Message 5" do
               point = Routeguide.Point.new(latitude: 0, longitude: rem(6, 3) + 1)
               note = Routeguide.RouteNote.new(location: point, message: "Message #{6}")
-              GRPC.Stub.send_request(stream, note, end_stream: true)
+              Falco.Stub.send_request(stream, note, end_stream: true)
             end
 
             note

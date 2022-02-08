@@ -2,20 +2,20 @@ defmodule Falco.Stub do
   @moduledoc """
   A module acting as the interface for gRPC client.
 
-  You can do everything in the client side via `GRPC.Stub`, including connecting,
+  You can do everything in the client side via `Falco.Stub`, including connecting,
   sending/receiving steaming or non-steaming requests, canceling calls and so on.
 
   A service is needed to define a stub:
 
       defmodule Greeter.Service do
-        use GRPC.Service, name: "ping"
+        use Falco.Service, name: "ping"
 
         rpc :SayHello, Request, Reply
         rpc :SayGoodbye, stream(Request), stream(Reply)
       end
 
       defmodule Greeter.Stub do
-        use GRPC.Stub, service: Greeter.Service
+        use Falco.Stub, service: Greeter.Service
       end
 
   so that functions `say_hello/2` and `say_goodbye/1` will be generated for you:
@@ -25,32 +25,35 @@ defmodule Falco.Stub do
 
       # Streaming call
       stream = Greeter.Stub.say_goodbye(channel)
-      GRPC.Stub.send_request(stream, request, end_stream: true)
-      {:ok, reply_enum} = GRPC.Stub.recv(stream)
+      Falco.Stub.send_request(stream, request, end_stream: true)
+      {:ok, reply_enum} = Falco.Stub.recv(stream)
       replies = Enum.map(reply_enum, fn({:ok, reply}) -> reply end)
 
   Note that streaming calls are very different with unary calls. If request is
   streaming, the RPC function only accepts channel as argument and returns a
-  `GRPC.Client.Stream`. You can send streaming requests one by one via `send_request/3`,
+  `Falco.Client.Stream`. You can send streaming requests one by one via `send_request/3`,
   then use `recv/1` to receive the reply. And if the reply is streaming, `recv/1`
   returns a `Stream`.
 
   You can refer to `call/6` for doc of your RPC functions.
   """
-  alias GRPC.Channel
+  alias Falco.Channel
   @insecure_scheme "http"
   @secure_scheme "https"
-  @canceled_error GRPC.RPCError.exception(GRPC.Status.cancelled(), "The operation was cancelled")
+  @canceled_error Falco.RPCError.exception(
+                    Falco.Status.cancelled(),
+                    "The operation was cancelled"
+                  )
   # 10 seconds
   @default_timeout 10000
 
   @type rpc_return ::
           {:ok, struct}
           | {:ok, struct, map}
-          | GRPC.Client.Stream.t()
+          | Falco.Client.Stream.t()
           | {:ok, Enumerable.t()}
           | {:ok, Enumerable.t(), map}
-          | {:error, GRPC.RPCError.t()}
+          | {:error, Falco.RPCError.t()}
 
   require Logger
 
@@ -62,9 +65,9 @@ defmodule Falco.Stub do
       Enum.each(service_mod.__rpc_calls__, fn {name, {_, req_stream}, {_, res_stream}} = rpc ->
         func_name = name |> to_string |> Macro.underscore()
         path = "/#{service_name}/#{name}"
-        grpc_type = GRPC.Service.grpc_type(rpc)
+        grpc_type = Falco.Service.grpc_type(rpc)
 
-        stream = %GRPC.Client.Stream{
+        stream = %Falco.Client.Stream{
           service_name: service_name,
           method_name: to_string(name),
           grpc_type: grpc_type,
@@ -75,7 +78,7 @@ defmodule Falco.Stub do
 
         if req_stream do
           def unquote(String.to_atom(func_name))(channel, opts \\ []) do
-            GRPC.Stub.call(
+            Falco.Stub.call(
               unquote(service_mod),
               unquote(Macro.escape(rpc)),
               %{unquote(Macro.escape(stream)) | channel: channel},
@@ -85,7 +88,7 @@ defmodule Falco.Stub do
           end
         else
           def unquote(String.to_atom(func_name))(channel, request, opts \\ []) do
-            GRPC.Stub.call(
+            Falco.Stub.call(
               unquote(service_mod),
               unquote(Macro.escape(rpc)),
               %{unquote(Macro.escape(stream)) | channel: channel},
@@ -99,23 +102,23 @@ defmodule Falco.Stub do
   end
 
   @doc """
-  Establish a connection with gRPC server and return `GRPC.Channel` needed for
+  Establish a connection with gRPC server and return `Falco.Channel` needed for
   sending requests.
 
   ## Examples
 
-      iex> GRPC.Stub.connect("localhost:50051")
+      iex> Falco.Stub.connect("localhost:50051")
       {:ok, channel}
 
-      iex> GRPC.Stub.connect("localhost:50051", accepted_compressors: [GRPC.Compressor.Gzip])
+      iex> Falco.Stub.connect("localhost:50051", accepted_compressors: [Falco.Compressor.Gzip])
       {:ok, channel}
 
-      iex> GRPC.Stub.connect("/paht/to/unix.sock")
+      iex> Falco.Stub.connect("/paht/to/unix.sock")
       {:ok, channel}
 
   ## Options
 
-    * `:cred` - a `GRPC.Credential` used to indicate it's a secure connection.
+    * `:cred` - a `Falco.Credential` used to indicate it's a secure connection.
       An insecure connection will be created without this option.
     * `:adapter` - custom client adapter
     * `:interceptors` - client interceptors
@@ -125,7 +128,7 @@ defmodule Falco.Stub do
     * `:accepted_compressors` - tell servers accepted compressors, this can be used without `:compressor`
     * `:headers` - headers to attach to each request
   """
-  @spec connect(String.t(), Keyword.t()) :: {:ok, GRPC.Channel.t()} | {:error, any}
+  @spec connect(String.t(), Keyword.t()) :: {:ok, Falco.Channel.t()} | {:error, any}
   def connect(addr, opts \\ []) when is_binary(addr) and is_list(opts) do
     {host, port} =
       case String.split(addr, ":") do
@@ -147,13 +150,13 @@ defmodule Falco.Stub do
       Keyword.get(
         opts,
         :adapter,
-        Application.get_env(:falco, :http2_client_adapter, GRPC.Adapter.Gun)
+        Application.get_env(:falco, :http2_client_adapter, Falco.Adapter.Gun)
       )
 
     cred = Keyword.get(opts, :cred)
     scheme = if cred, do: @secure_scheme, else: @insecure_scheme
     interceptors = Keyword.get(opts, :interceptors, []) |> init_interceptors
-    codec = Keyword.get(opts, :codec, GRPC.Codec.Proto)
+    codec = Keyword.get(opts, :codec, Falco.Codec.Proto)
     compressor = Keyword.get(opts, :compressor)
     accepted_compressors = Keyword.get(opts, :accepted_compressors) || []
     headers = Keyword.get(opts, :headers) || []
@@ -221,7 +224,7 @@ defmodule Falco.Stub do
   ## Returns
 
     * Unary calls. `{:ok, reply} | {:ok, headers_map} | {:error, error}`
-    * Client streaming. A `GRPC.Client.Stream`
+    * Client streaming. A `Falco.Client.Stream`
     * Server streaming. `{:ok, Enumerable.t} | {:ok, Enumerable.t, trailers_map} | {:error, error}`
 
   ## Options
@@ -234,7 +237,7 @@ defmodule Falco.Stub do
       with the last elem being a map of headers `%{headers: headers, trailers: trailers}`(unary) or
       `%{headers: headers}`(server streaming)
   """
-  @spec call(atom, tuple, GRPC.Client.Stream.t(), struct | nil, keyword) :: rpc_return
+  @spec call(atom, tuple, Falco.Client.Stream.t(), struct | nil, keyword) :: rpc_return
   def call(_service_mod, rpc, %{channel: channel} = stream, request, opts) do
     {_, {req_mod, req_stream}, {res_mod, response_stream}} = rpc
 
@@ -322,7 +325,7 @@ defmodule Falco.Stub do
     * `:end_stream` - indicates it's the last one request, then the stream will be in
       half_closed state. Default is false.
   """
-  @spec send_request(GRPC.Client.Stream.t(), struct, Keyword.t()) :: GRPC.Client.Stream.t()
+  @spec send_request(Falco.Client.Stream.t(), struct, Keyword.t()) :: Falco.Client.Stream.t()
   def send_request(%{__interface__: interface} = stream, request, opts \\ []) do
     interface[:send_request].(stream, request, opts)
   end
@@ -334,10 +337,10 @@ defmodule Falco.Stub do
 
   ## Examples
 
-      iex> stream = GRPC.Stub.send_request(stream, request)
-      iex> GRPC.Stub.end_stream(stream)
+      iex> stream = Falco.Stub.send_request(stream, request)
+      iex> Falco.Stub.end_stream(stream)
   """
-  @spec end_stream(GRPC.Client.Stream.t()) :: GRPC.Client.Stream.t()
+  @spec end_stream(Falco.Client.Stream.t()) :: Falco.Client.Stream.t()
   def end_stream(%{channel: channel} = stream) do
     channel.adapter.end_stream(stream)
   end
@@ -367,10 +370,10 @@ defmodule Falco.Stub do
   ## Examples
 
       # Reply is not streaming
-      {:ok, reply} = GRPC.Stub.recv(stream)
+      {:ok, reply} = Falco.Stub.recv(stream)
 
       # Reply is streaming
-      {:ok, enum} = GRPC.Stub.recv(stream)
+      {:ok, enum} = Falco.Stub.recv(stream)
       replies = Enum.map(enum, fn({:ok, reply}) -> reply end)
 
   ## Options
@@ -379,7 +382,7 @@ defmodule Falco.Stub do
     * `:deadline` - when the request is timeout, will override timeout
     * `:return_headers` - when true, headers will be returned.
   """
-  @spec recv(GRPC.Client.Stream.t(), keyword | map) ::
+  @spec recv(Falco.Client.Stream.t(), keyword | map) ::
           {:ok, struct}
           | {:ok, struct, map}
           | {:ok, Enumerable.t()}
@@ -447,7 +450,7 @@ defmodule Falco.Stub do
   defp recv_headers(adapter, conn_payload, stream_payload, opts) do
     case adapter.recv_headers(conn_payload, stream_payload, opts) do
       {:ok, headers, is_fin} ->
-        {:ok, GRPC.Transport.HTTP2.decode_headers(headers), is_fin}
+        {:ok, Falco.Transport.HTTP2.decode_headers(headers), is_fin}
 
       other ->
         other
@@ -464,7 +467,7 @@ defmodule Falco.Stub do
         recv_body(adapter, conn_payload, stream_payload, <<acc::binary, data::binary>>, opts)
 
       {:trailers, trailers} ->
-        {:ok, acc, GRPC.Transport.HTTP2.decode_headers(trailers)}
+        {:ok, acc, Falco.Transport.HTTP2.decode_headers(trailers)}
     end
   end
 
@@ -485,7 +488,7 @@ defmodule Falco.Stub do
               nil
           end
 
-        case GRPC.Message.from_data(%{compressor: compressor}, body) do
+        case Falco.Message.from_data(%{compressor: compressor}, body) do
           {:ok, msg} ->
             {:ok, codec.decode(msg, res_mod)}
 
@@ -501,10 +504,10 @@ defmodule Falco.Stub do
   defp parse_trailers(trailers) do
     status = String.to_integer(trailers["grpc-status"])
 
-    if status == GRPC.Status.ok() do
+    if status == Falco.Status.ok() do
       :ok
     else
-      {:error, %GRPC.RPCError{status: status, message: trailers["grpc-message"]}}
+      {:error, %Falco.RPCError{status: status, message: trailers["grpc-message"]}}
     end
   end
 
@@ -554,7 +557,7 @@ defmodule Falco.Stub do
         read_stream(new_s)
 
       {:trailers, trailers} ->
-        trailers = GRPC.Transport.HTTP2.decode_headers(trailers)
+        trailers = Falco.Transport.HTTP2.decode_headers(trailers)
 
         case parse_trailers(trailers) do
           :ok ->
@@ -576,7 +579,7 @@ defmodule Falco.Stub do
   end
 
   defp read_stream(%{buffer: buffer, need_more: false, response_mod: res_mod, codec: codec} = s) do
-    case GRPC.Message.get_message(buffer) do
+    case Falco.Message.get_message(buffer) do
       # TODO
       {{_, message}, rest} ->
         reply = codec.decode(message, res_mod)
@@ -597,7 +600,7 @@ defmodule Falco.Stub do
   end
 
   defp parse_req_opts([{:deadline, deadline} | t], acc) do
-    parse_req_opts(t, Map.put(acc, :timeout, GRPC.TimeUtils.to_relative(deadline)))
+    parse_req_opts(t, Map.put(acc, :timeout, Falco.TimeUtils.to_relative(deadline)))
   end
 
   defp parse_req_opts([{:compressor, compressor} | t], acc) do
@@ -644,7 +647,7 @@ defmodule Falco.Stub do
   end
 
   defp parse_recv_opts([{:deadline, deadline} | t], acc) do
-    parse_recv_opts(t, Map.put(acc, :deadline, GRPC.TimeUtils.to_relative(deadline)))
+    parse_recv_opts(t, Map.put(acc, :deadline, Falco.TimeUtils.to_relative(deadline)))
   end
 
   defp parse_recv_opts([{:return_headers, return_headers} | t], acc) do

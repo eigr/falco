@@ -1,6 +1,6 @@
 defmodule Grpc.Testing.TestService.Service do
   @moduledoc false
-  use GRPC.Service, name: "grpc.testing.TestService"
+  use Falco.Service, name: "grpc.testing.TestService"
 
   rpc :EmptyCall, Grpc.Testing.Empty, Grpc.Testing.Empty
   rpc :UnaryCall, Grpc.Testing.SimpleRequest, Grpc.Testing.SimpleResponse
@@ -27,24 +27,24 @@ end
 
 defmodule Grpc.Testing.TestService.Stub do
   @moduledoc false
-  use GRPC.Stub, service: Grpc.Testing.TestService.Service
+  use Falco.Stub, service: Grpc.Testing.TestService.Service
 end
 
 defmodule Grpc.Testing.UnimplementedService.Service do
   @moduledoc false
-  use GRPC.Service, name: "grpc.testing.UnimplementedService"
+  use Falco.Service, name: "grpc.testing.UnimplementedService"
 
   rpc :UnimplementedCall, Grpc.Testing.Empty, Grpc.Testing.Empty
 end
 
 defmodule Grpc.Testing.UnimplementedService.Stub do
   @moduledoc false
-  use GRPC.Stub, service: Grpc.Testing.UnimplementedService.Service
+  use Falco.Stub, service: Grpc.Testing.UnimplementedService.Service
 end
 
 defmodule Grpc.Testing.ReconnectService.Service do
   @moduledoc false
-  use GRPC.Service, name: "grpc.testing.ReconnectService"
+  use Falco.Service, name: "grpc.testing.ReconnectService"
 
   rpc :Start, Grpc.Testing.ReconnectParams, Grpc.Testing.Empty
   rpc :Stop, Grpc.Testing.Empty, Grpc.Testing.ReconnectInfo
@@ -52,5 +52,5 @@ end
 
 defmodule Grpc.Testing.ReconnectService.Stub do
   @moduledoc false
-  use GRPC.Stub, service: Grpc.Testing.ReconnectService.Service
+  use Falco.Stub, service: Grpc.Testing.ReconnectService.Service
 end
