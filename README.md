@@ -133,11 +133,9 @@ Check [examples](examples) and [interop](interop)(Interoperability Test) for som
 
 2. [Benchmark](benchmark) followed by official spec
 
-## Sponsors
+## Thanks
 
-This project is being sponsored by [Tubi](https://tubitv.com/). Thank you!
-
-<img src="https://user-images.githubusercontent.com/1253659/37473536-4db44048-28a9-11e8-90d5-f8a2f5a8d53c.jpg" height="80">
+Special thanks to the [Tubi](https://tubitv.com/) team for creating the [elixir-grpc](https://github.com/elixir-grpc) library that we based on (via fork) for this project.
 
 ## Contributing
 
