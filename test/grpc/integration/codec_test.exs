@@ -8,6 +8,10 @@ defmodule Falco.Integration.CodecTest do
       "not-registered"
     end
 
+    def pack_encoded(binary), do: binary
+
+    def prepare_decode(binary), do: binary
+
     def encode(struct) do
       :erlang.term_to_binary(struct)
     end
@@ -20,7 +24,7 @@ defmodule Falco.Integration.CodecTest do
   defmodule HelloServer do
     use Falco.Server,
       service: Helloworld.Greeter.Service,
-      codecs: [Falco.Codec.Proto, Falco.Codec.Erlpack]
+      codecs: [Falco.Codec.Proto, Falco.Codec.Erlpack, Falco.Codec.WebText]
 
     def say_hello(req, _stream) do
       Helloworld.HelloReply.new(message: "Hello, #{req.name}")
@@ -31,21 +35,25 @@ defmodule Falco.Integration.CodecTest do
     use Falco.Stub, service: Helloworld.Greeter.Service
   end
 
-  test "Says hello over erlpack" do
+  test "Says hello over erlpack, GRPC-web-text" do
     run_server(HelloServer, fn port ->
       {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       name = "Mairbek"
       req = Helloworld.HelloRequest.new(name: name)
 
-      {:ok, reply} = channel |> HelloErlpackStub.say_hello(req, codec: Falco.Codec.Erlpack)
+      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: Falco.Codec.Erlpack)
+      assert reply.message == "Hello, #{name}"
+
+      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: Falco.Codec.WebText)
       assert reply.message == "Hello, #{name}"
 
       # verify that proto still works
-      {:ok, reply} = channel |> HelloErlpackStub.say_hello(req, codec: Falco.Codec.Proto)
+      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: Falco.Codec.Proto)
+
       assert reply.message == "Hello, #{name}"
 
       # codec not registered
-      {:error, reply} = channel |> HelloErlpackStub.say_hello(req, codec: NotRegisteredCodec)
+      {:error, reply} = channel |> HelloStub.say_hello(req, codec: NotRegisteredCodec)
 
       assert %Falco.RPCError{
                status: Falco.Status.unimplemented(),

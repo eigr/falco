@@ -488,7 +488,7 @@ defmodule Falco.Stub do
               nil
           end
 
-        case Falco.Message.from_data(%{compressor: compressor}, body) do
+        case Falco.Message.from_data(%{compressor: compressor}, codec.prepare_decode(body)) do
           {:ok, msg} ->
             {:ok, codec.decode(msg, res_mod)}
 
