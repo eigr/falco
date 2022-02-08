@@ -67,13 +67,13 @@ defmodule Benchmark.ClientWorker do
 
   def streaming_loop(stream, req, {pid, no} = manager, res_enum) do
     start = System.monotonic_time(:nanosecond)
-    GRPC.Stub.send_request(stream, req)
+    Falco.Stub.send_request(stream, req)
 
     res_enum =
       if res_enum do
         res_enum
       else
-        {:ok, enum} = GRPC.Stub.recv(stream)
+        {:ok, enum} = Falco.Stub.recv(stream)
         enum
       end
 

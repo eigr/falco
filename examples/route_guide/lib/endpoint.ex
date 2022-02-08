@@ -1,6 +1,6 @@
 defmodule Routeguide.Endpoint do
-  use GRPC.Endpoint
+  use Falco.Endpoint
 
-  intercept GRPC.Logger.Server
+  intercept Falco.Logger.Server
   run Routeguide.RouteGuide.Server
 end

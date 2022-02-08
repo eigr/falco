@@ -49,11 +49,11 @@ defmodule RouteGuide.Client do
 
     Enum.reduce(points, points, fn _, [point | tail] ->
       opts = if length(tail) == 0, do: [end_stream: true], else: []
-      GRPC.Stub.send_request(stream, point, opts)
+      Falco.Stub.send_request(stream, point, opts)
       tail
     end)
 
-    res = GRPC.Stub.recv(stream)
+    res = Falco.Stub.recv(stream)
     IO.puts("Route summary: #{inspect(res)}")
   end
 
@@ -79,19 +79,17 @@ defmodule RouteGuide.Client do
       Task.async(fn ->
         Enum.reduce(notes, notes, fn _, [note | tail] ->
           opts = if length(tail) == 0, do: [end_stream: true], else: []
-          GRPC.Stub.send_request(stream, note, opts)
+          Falco.Stub.send_request(stream, note, opts)
           tail
         end)
       end)
 
-    {:ok, result_enum} = GRPC.Stub.recv(stream)
+    {:ok, result_enum} = Falco.Stub.recv(stream)
     Task.await(task)
 
     Enum.each(result_enum, fn {:ok, note} ->
       IO.puts(
-        "Got message #{note.message} at point(#{note.location.latitude}, #{
-          note.location.longitude
-        })"
+        "Got message #{note.message} at point(#{note.location.latitude}, #{note.location.longitude})"
       )
     end)
   end

@@ -44,7 +44,7 @@ end
 
 defmodule Helloworld.Greeter.Service do
   @moduledoc false
-  use GRPC.Service, name: "helloworld.Greeter"
+  use Falco.Service, name: "helloworld.Greeter"
 
   rpc :SayHello, Helloworld.HelloRequest, Helloworld.HelloReply
   rpc :CheckHeaders, Helloworld.HeaderRequest, Helloworld.HeaderReply
@@ -52,5 +52,5 @@ end
 
 defmodule Helloworld.Greeter.Stub do
   @moduledoc false
-  use GRPC.Stub, service: Helloworld.Greeter.Service
+  use Falco.Stub, service: Helloworld.Greeter.Service
 end

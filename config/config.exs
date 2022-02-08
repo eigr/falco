@@ -1,3 +1,3 @@
-use Mix.Config
+import Config
 
-config :grpc, http2_client_adapter: GRPC.Adapter.Gun
+config :falco, http2_client_adapter: Falco.Adapter.Gun

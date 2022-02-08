@@ -9,7 +9,7 @@ defmodule Routeguide.App do
 
     children = [
       supervisor(RouteGuide.Data, []),
-      supervisor(GRPC.Server.Supervisor, [start_args()])
+      supervisor(Falco.Server.Supervisor, [start_args()])
     ]
 
     opts = [strategy: :one_for_one, name: Routeguide]
@@ -18,7 +18,7 @@ defmodule Routeguide.App do
 
   defp start_args do
     if System.get_env("TLS") do
-      cred = GRPC.Credential.new(ssl: [certfile: @cert_path, keyfile: @key_path])
+      cred = Falco.Credential.new(ssl: [certfile: @cert_path, keyfile: @key_path])
       IO.inspect(cred)
       {Routeguide.Endpoint, 10000, cred: cred}
     else

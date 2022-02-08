@@ -1,5 +1,5 @@
 defmodule Grpc.Testing.BenchmarkService.Server do
-  use GRPC.Server, service: Grpc.Testing.BenchmarkService.Service
+  use Falco.Server, service: Grpc.Testing.BenchmarkService.Service
   require Logger
   alias Grpc.Testing.{SimpleRequest, SimpleResponse}
 
@@ -12,7 +12,7 @@ defmodule Grpc.Testing.BenchmarkService.Server do
     Enum.each(req_enum, fn req ->
       Logger.debug("got streaming_call #{inspect(req)}")
       out = SimpleResponse.new(payload: new_payload(req.response_type, req.response_size))
-      GRPC.Server.send_reply(stream, out)
+      Falco.Server.send_reply(stream, out)
     end)
   end
 
@@ -29,9 +29,7 @@ defmodule Grpc.Testing.BenchmarkService.Server do
   end
 
   def new_payload(type, 0) do
-    Grpc.Testing.Payload.new(
-      type: type
-    )
+    Grpc.Testing.Payload.new(type: type)
   end
 
   def new_payload(type, size) do

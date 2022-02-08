@@ -1,3 +1,4 @@
-use Mix.Config
+import Config
 
-# config :grpc, start_server: true
+# config :falco, start_server: true
+import_config "#{config_env()}.exs"

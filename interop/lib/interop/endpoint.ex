@@ -1,7 +1,7 @@
 defmodule Interop.Endpoint do
-  use GRPC.Endpoint
+  use Falco.Endpoint
 
-  intercept GRPC.Logger.Server
+  intercept Falco.Logger.Server
   intercept GRPCPrometheus.ServerInterceptor
   intercept Interop.ServerInterceptor
 

@@ -1,8 +1,8 @@
-defmodule GRPC.Test.ClientAdapter do
+defmodule Falco.Test.ClientAdapter do
   def connect(channel, _opts), do: {:ok, channel}
 end
 
-defmodule GRPC.Test.ServerAdapter do
+defmodule Falco.Test.ServerAdapter do
   def start(s, h, p, opts) do
     {s, h, p, opts}
   end

@@ -1,24 +1,24 @@
-defmodule GRPC.Mixfile do
+defmodule Falco.Mixfile do
   use Mix.Project
 
   @version "0.5.0-beta.1"
 
   def project do
     [
-      app: :grpc,
+      app: :falco,
       version: @version,
-      elixir: "~> 1.5",
+      elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       package: package(),
-      description: "The Elixir implementation of gRPC",
+      description: "The Another Elixir implementation of gRPC",
       docs: [
         extras: ["README.md"],
         main: "readme",
         source_ref: "v#{@version}",
-        source_url: "https://github.com/elixir-grpc/grpc"
+        source_url: "https://github.com/eigr/falco"
       ],
       dialyzer: [
         plt_add_apps: [:mix, :iex]
@@ -49,9 +49,9 @@ defmodule GRPC.Mixfile do
 
   defp package do
     %{
-      maintainers: ["Bing Han"],
+      maintainers: ["Adriano Santos"],
       licenses: ["Apache 2"],
-      links: %{"GitHub" => "https://github.com/elixir-grpc/grpc"},
+      links: %{"GitHub" => "https://github.com/eigr/falco"},
       files: ~w(mix.exs README.md lib src config LICENSE .formatter.exs)
     }
   end

@@ -1,11 +1,11 @@
-defmodule GRPC.Integration.ClientInterceptorTest do
-  use GRPC.Integration.TestCase
+defmodule Falco.Integration.ClientInterceptorTest do
+  use Falco.Integration.TestCase
 
   defmodule HelloServer do
-    use GRPC.Server, service: Helloworld.Greeter.Service
+    use Falco.Server, service: Helloworld.Greeter.Service
 
     def say_hello(req, stream) do
-      headers = GRPC.Stream.get_headers(stream)
+      headers = Falco.Stream.get_headers(stream)
       label = headers["x-test-label"]
       Helloworld.HelloReply.new(message: "Hello, #{req.name} #{label}")
     end
@@ -21,13 +21,13 @@ defmodule GRPC.Integration.ClientInterceptorTest do
           original -> %{headers | "x-test-label" => "#{original} #{label}"}
         end
 
-      new_stream = GRPC.Client.Stream.put_headers(stream, new_headers)
+      new_stream = Falco.Client.Stream.put_headers(stream, new_headers)
       next.(new_stream, req)
     end
   end
 
   defmodule HelloEndpoint do
-    use GRPC.Endpoint
+    use Falco.Endpoint
 
     run HelloServer
   end
@@ -35,7 +35,7 @@ defmodule GRPC.Integration.ClientInterceptorTest do
   test "client sends headers" do
     run_endpoint(HelloEndpoint, fn port ->
       {:ok, channel} =
-        GRPC.Stub.connect("localhost:#{port}",
+        Falco.Stub.connect("localhost:#{port}",
           interceptors: [
             {AddHeadersClientInterceptor, "two"},
             {AddHeadersClientInterceptor, "one"}

@@ -1,7 +1,7 @@
-defmodule GRPC.Transport.UtilsTest do
+defmodule Falco.Transport.UtilsTest do
   use ExUnit.Case, async: true
 
-  import GRPC.Transport.Utils
+  import Falco.Transport.Utils
 
   # unit: ns
   @ns_ceiling 1000

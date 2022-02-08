@@ -1,8 +1,8 @@
-defmodule GRPC.Integration.CodecTest do
-  use GRPC.Integration.TestCase
+defmodule Falco.Integration.CodecTest do
+  use Falco.Integration.TestCase
 
   defmodule NotRegisteredCodec do
-    @behaviour GRPC.Codec
+    @behaviour Falco.Codec
 
     def name() do
       "not-registered"
@@ -22,40 +22,41 @@ defmodule GRPC.Integration.CodecTest do
   end
 
   defmodule HelloServer do
-    use GRPC.Server,
+    use Falco.Server,
       service: Helloworld.Greeter.Service,
-      codecs: [GRPC.Codec.Proto, GRPC.Codec.Erlpack, GRPC.Codec.WebText]
+      codecs: [Falco.Codec.Proto, Falco.Codec.Erlpack, Falco.Codec.WebText]
 
     def say_hello(req, _stream) do
       Helloworld.HelloReply.new(message: "Hello, #{req.name}")
     end
   end
 
-  defmodule HelloStub do
-    use GRPC.Stub, service: Helloworld.Greeter.Service
+  defmodule HelloErlpackStub do
+    use Falco.Stub, service: Helloworld.Greeter.Service
   end
 
   test "Says hello over erlpack, GRPC-web-text" do
     run_server(HelloServer, fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       name = "Mairbek"
       req = Helloworld.HelloRequest.new(name: name)
 
-      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: GRPC.Codec.Erlpack)
+      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: Falco.Codec.Erlpack)
       assert reply.message == "Hello, #{name}"
 
-      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: GRPC.Codec.WebText)
+      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: Falco.Codec.WebText)
       assert reply.message == "Hello, #{name}"
 
       # verify that proto still works
-      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: GRPC.Codec.Proto)
+      {:ok, reply} = channel |> HelloStub.say_hello(req, codec: Falco.Codec.Proto)
+
       assert reply.message == "Hello, #{name}"
 
       # codec not registered
       {:error, reply} = channel |> HelloStub.say_hello(req, codec: NotRegisteredCodec)
 
-      assert %GRPC.RPCError{
-               status: GRPC.Status.unimplemented(),
+      assert %Falco.RPCError{
+               status: Falco.Status.unimplemented(),
                message: "No codec registered for content-type application/grpc+not-registered"
              } == reply
     end)

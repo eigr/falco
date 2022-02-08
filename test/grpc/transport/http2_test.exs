@@ -1,10 +1,10 @@
-defmodule GRPC.Transport.HTTP2Test do
+defmodule Falco.Transport.HTTP2Test do
   use ExUnit.Case, async: true
-  alias GRPC.Channel
-  alias GRPC.Transport.HTTP2
+  alias Falco.Channel
+  alias Falco.Transport.HTTP2
 
   @channel %Channel{scheme: "http", host: "grpc.io"}
-  alias GRPC.Client.Stream
+  alias Falco.Client.Stream
 
   defp assert_header({key, _v} = pair, headers) do
     assert pair == Enum.find(headers, nil, fn {k, _v} -> if k == key, do: true end)

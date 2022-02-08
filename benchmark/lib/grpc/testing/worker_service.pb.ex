@@ -1,6 +1,6 @@
 defmodule Grpc.Testing.WorkerService.Service do
   @moduledoc false
-  use GRPC.Service, name: "grpc.testing.WorkerService"
+  use Falco.Service, name: "grpc.testing.WorkerService"
 
   rpc :RunServer, stream(Grpc.Testing.ServerArgs), stream(Grpc.Testing.ServerStatus)
   rpc :RunClient, stream(Grpc.Testing.ClientArgs), stream(Grpc.Testing.ClientStatus)
@@ -10,5 +10,5 @@ end
 
 defmodule Grpc.Testing.WorkerService.Stub do
   @moduledoc false
-  use GRPC.Stub, service: Grpc.Testing.WorkerService.Service
+  use Falco.Stub, service: Grpc.Testing.WorkerService.Service
 end

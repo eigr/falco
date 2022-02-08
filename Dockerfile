@@ -1,4 +1,4 @@
-FROM elixir:1.8.1
+FROM 1.12-alpine
 
 ARG MIX_ENV=dev
 

@@ -1,13 +1,14 @@
 # gRPC Elixir
 
-[![Hex.pm](https://img.shields.io/hexpm/v/grpc.svg)](https://hex.pm/packages/grpc)
-[![Travis Status](https://travis-ci.org/elixir-grpc/grpc.svg?branch=master)](https://travis-ci.org/elixir-grpc/grpc)
-[![GitHub actions Status](https://github.com/elixir-grpc/grpc/workflows/CI/badge.svg)](https://github.com/elixir-grpc/grpc/actions)
-[![Inline docs](http://inch-ci.org/github/elixir-grpc/grpc.svg?branch=master)](http://inch-ci.org/github/elixir-grpc/grpc)
+[![Hex.pm](https://img.shields.io/hexpm/v/Falco.svg)](https://hex.pm/packages/grpc)
+[![Travis Status](https://travis-ci.org/elixir-grpc/Falco.svg?branch=master)](https://travis-ci.org/elixir-grpc/grpc)
+[![GitHub actions Status](https://github.com/eigr/falco/workflows/CI/badge.svg)](https://github.com/eigr/falco/actions)
+[![Inline docs](http://inch-ci.org/github/elixir-grpc/Falco.svg?branch=master)](http://inch-ci.org/github/elixir-grpc/grpc)
 
-An Elixir implementation of [gRPC](http://www.grpc.io/).
+An Elixir implementation of [gRPC](http://www.Falco.io/).
+The name falco is a tribute to the [Peregrine Falcon](https://en.wikipedia.org/wiki/Peregrine_falcon), a super fast bird of prey. 
 
-**WARNING: Be careful to use it in production! Test and benchmark in advance.**
+**This a fork of https://github.com/elixir-grpc/grpc**
 
 **NOTICE: Erlang/OTP needs >= 20.3.2**
 
@@ -26,7 +27,7 @@ The package can be installed as:
   ```elixir
   def deps do
     [
-      {:grpc, github: "elixir-grpc/grpc"},
+      {:falco, github: "eigr/falco"},
       # 2.9.0 fixes some important bugs, so it's better to use ~> 2.9.0
       {:cowlib, "~> 2.9.0", override: true}
     ]
@@ -39,9 +40,9 @@ The package can be installed as:
 2. Implement the server side code like below and remember to return the expected message types.
 ```elixir
 defmodule Helloworld.Greeter.Server do
-  use GRPC.Server, service: Helloworld.Greeter.Service
+  use Falco.Server, service: Helloworld.Greeter.Service
 
-  @spec say_hello(Helloworld.HelloRequest.t, GRPC.Server.Stream.t) :: Helloworld.HelloReply.t
+  @spec say_hello(Helloworld.HelloRequest.t, Falco.Server.Stream.t) :: Helloworld.HelloReply.t
   def say_hello(request, _stream) do
     Helloworld.HelloReply.new(message: "Hello #{request.name}")
   end
@@ -50,14 +51,14 @@ end
 
 3. Start the server
 
-You can start the gRPC server as a supervised process. First, add `GRPC.Server.Supervisor` to your supervision tree.
+You can start the gRPC server as a supervised process. First, add `Falco.Server.Supervisor` to your supervision tree.
 
 ```elixir
 # Define your endpoint
 defmodule Helloworld.Endpoint do
-  use GRPC.Endpoint
+  use Falco.Endpoint
 
-  intercept GRPC.Logger.Server
+  intercept Falco.Logger.Server
   run Helloworld.Greeter.Server
 end
 
@@ -67,7 +68,7 @@ defmodule HelloworldApp do
   def start(_type, _args) do
     children = [
       # ...
-      supervisor(GRPC.Server.Supervisor, [{Helloworld.Endpoint, 50051}])
+      supervisor(Falco.Server.Supervisor, [{Helloworld.Endpoint, 50051}])
     ]
 
     opts = [strategy: :one_for_one, name: YourApp]
@@ -80,28 +81,28 @@ Then start it when starting your application:
 
 ```elixir
 # config.exs
-config :grpc, start_server: true
+config :falco, start_server: true
 
 # test.exs
-config :grpc, start_server: false
+config :falco, start_server: false
 
 $ iex -S mix
 ```
 
-or run grpc.server using a mix task
+or run falco.server using a mix task
 
 ```
-$ mix grpc.server
+$ mix falco.server
 ```
 
 4. Call rpc:
 ```elixir
-iex> {:ok, channel} = GRPC.Stub.connect("localhost:50051")
+iex> {:ok, channel} = Falco.Stub.connect("localhost:50051")
 iex> request = Helloworld.HelloRequest.new(name: "grpc-elixir")
 iex> {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(request)
 
 # With interceptors
-iex> {:ok, channel} = GRPC.Stub.connect("localhost:50051", interceptors: [GRPC.Logger.Client])
+iex> {:ok, channel} = Falco.Stub.connect("localhost:50051", interceptors: [Falco.Logger.Client])
 ...
 ```
 
@@ -116,15 +117,15 @@ Check [examples](examples) and [interop](interop)(Interoperability Test) for som
 - [x] Helloworld and RouteGuide examples
 - [x] Doc and more tests
 - [x] Authentication with TLS
-- [x] Improve code generation from protos ([protobuf-elixir](https://github.com/tony612/protobuf-elixir) [#8](https://github.com/elixir-grpc/grpc/issues/8))
 - [x] Timeout for unary calls
 - [x] Errors handling
 - [x] Benchmarking
 - [x] Logging
-- [x] Interceptors(See `GRPC.Endpoint`)
+- [x] Interceptors(See `Falco.Endpoint`)
 - [x] [Connection Backoff](https://github.com/grpc/grpc/blob/master/doc/connection-backoff.md)
 - [x] Data compression
 - [x] Support other encoding(other than protobuf)
+- [ ] gRPC Web support
 
 ## Benchmark
 

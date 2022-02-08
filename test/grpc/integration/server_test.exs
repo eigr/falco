@@ -1,8 +1,8 @@
-defmodule GRPC.Integration.ServerTest do
-  use GRPC.Integration.TestCase
+defmodule Falco.Integration.ServerTest do
+  use Falco.Integration.TestCase
 
   defmodule FeatureServer do
-    use GRPC.Server, service: Routeguide.RouteGuide.Service
+    use Falco.Server, service: Routeguide.RouteGuide.Service
 
     def get_feature(point, _stream) do
       Routeguide.Feature.new(location: point, name: "#{point.latitude},#{point.longitude}")
@@ -10,7 +10,7 @@ defmodule GRPC.Integration.ServerTest do
   end
 
   defmodule HelloServer do
-    use GRPC.Server, service: Helloworld.Greeter.Service
+    use Falco.Server, service: Helloworld.Greeter.Service
 
     def say_hello(%{name: "large response"}, _stream) do
       name = String.duplicate("a", round(:math.pow(2, 14)))
@@ -38,29 +38,29 @@ defmodule GRPC.Integration.ServerTest do
     end
 
     def check_headers(_req, stream) do
-      token = GRPC.Stream.get_headers(stream)["authorization"]
+      token = Falco.Stream.get_headers(stream)["authorization"]
       Helloworld.HeaderReply.new(authorization: token)
     end
   end
 
   defmodule HelloErrorServer do
-    use GRPC.Server, service: Helloworld.Greeter.Service
+    use Falco.Server, service: Helloworld.Greeter.Service
 
     def say_hello(%{name: "unknown error"}, _stream) do
       raise "unknown error(This is a test, please ignore it)"
     end
 
     def say_hello(_req, _stream) do
-      raise GRPC.RPCError, status: GRPC.Status.unauthenticated(), message: "Please authenticate"
+      raise Falco.RPCError, status: Falco.Status.unauthenticated(), message: "Please authenticate"
     end
   end
 
   defmodule FeatureErrorServer do
-    use GRPC.Server, service: Routeguide.RouteGuide.Service
-    alias GRPC.Server
+    use Falco.Server, service: Routeguide.RouteGuide.Service
+    alias Falco.Server
 
     def list_features(rectangle, stream) do
-      raise GRPC.RPCError, status: GRPC.Status.unauthenticated(), message: "Please authenticate"
+      raise Falco.RPCError, status: Falco.Status.unauthenticated(), message: "Please authenticate"
 
       Enum.each([rectangle.lo, rectangle.hi], fn point ->
         feature = simple_feature(point)
@@ -74,7 +74,7 @@ defmodule GRPC.Integration.ServerTest do
   end
 
   defmodule TimeoutServer do
-    use GRPC.Server, service: Routeguide.RouteGuide.Service
+    use Falco.Server, service: Routeguide.RouteGuide.Service
 
     def list_features(_rectangle, _stream) do
       Process.sleep(600)
@@ -82,14 +82,14 @@ defmodule GRPC.Integration.ServerTest do
   end
 
   defmodule SlowServer do
-    use GRPC.Server, service: Routeguide.RouteGuide.Service
+    use Falco.Server, service: Routeguide.RouteGuide.Service
 
     def list_features(rectangle, stream) do
       Process.sleep(400)
 
       Enum.each([rectangle.lo, rectangle.hi], fn point ->
         feature = simple_feature(point)
-        GRPC.Server.send_reply(stream, feature)
+        Falco.Server.send_reply(stream, feature)
       end)
     end
 
@@ -100,7 +100,7 @@ defmodule GRPC.Integration.ServerTest do
 
   test "multiple servers works" do
     run_server([FeatureServer, HelloServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       point = Routeguide.Point.new(latitude: 409_146_138, longitude: -746_188_906)
       {:ok, feature} = channel |> Routeguide.RouteGuide.Stub.get_feature(point)
       assert feature == Routeguide.Feature.new(location: point, name: "409146138,-746188906")
@@ -113,12 +113,12 @@ defmodule GRPC.Integration.ServerTest do
 
   test "returns appropriate error for unary requests" do
     run_server([HelloErrorServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       req = Helloworld.HelloRequest.new(name: "Elixir")
       {:error, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)
 
-      assert %GRPC.RPCError{
-               status: GRPC.Status.unauthenticated(),
+      assert %Falco.RPCError{
+               status: Falco.Status.unauthenticated(),
                message: "Please authenticate"
              } == reply
     end)
@@ -126,27 +126,27 @@ defmodule GRPC.Integration.ServerTest do
 
   test "return errors for unknown errors" do
     run_server([HelloErrorServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       req = Helloworld.HelloRequest.new(name: "unknown error")
 
       assert {:error,
-              %GRPC.RPCError{message: "Internal Server Error", status: GRPC.Status.unknown()}} ==
+              %Falco.RPCError{message: "Internal Server Error", status: Falco.Status.unknown()}} ==
                channel |> Helloworld.Greeter.Stub.say_hello(req)
     end)
   end
 
   test "returns appropriate error for stream requests" do
     run_server([FeatureErrorServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       rect = Routeguide.Rectangle.new()
-      error = %GRPC.RPCError{message: "Please authenticate", status: 16}
+      error = %Falco.RPCError{message: "Please authenticate", status: 16}
       assert {:error, ^error} = channel |> Routeguide.RouteGuide.Stub.list_features(rect)
     end)
   end
 
   test "return large response(more than MAX_FRAME_SIZE 16384)" do
     run_server([HelloServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       req = Helloworld.HelloRequest.new(name: "large response")
       {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)
       name = String.duplicate("a", round(:math.pow(2, 14)))
@@ -156,9 +156,9 @@ defmodule GRPC.Integration.ServerTest do
 
   test "return deadline error for slow server" do
     run_server([TimeoutServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       rect = Routeguide.Rectangle.new()
-      error = %GRPC.RPCError{message: "Deadline expired", status: 4}
+      error = %Falco.RPCError{message: "Deadline expired", status: 4}
 
       assert {:error, ^error} =
                channel |> Routeguide.RouteGuide.Stub.list_features(rect, timeout: 500)
@@ -167,7 +167,7 @@ defmodule GRPC.Integration.ServerTest do
 
   test "return normally for a little slow server" do
     run_server([SlowServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       low = Routeguide.Point.new(latitude: 400_000_000, longitude: -750_000_000)
       high = Routeguide.Point.new(latitude: 420_000_000, longitude: -730_000_000)
       rect = Routeguide.Rectangle.new(lo: low, hi: high)
@@ -184,7 +184,7 @@ defmodule GRPC.Integration.ServerTest do
       token = "Bearer TOKEN"
 
       {:ok, channel} =
-        GRPC.Stub.connect("localhost:#{port}",
+        Falco.Stub.connect("localhost:#{port}",
           headers: [{"authorization", token}]
         )
 
@@ -197,7 +197,7 @@ defmodule GRPC.Integration.ServerTest do
 
   test "get peer returns correct IP address" do
     run_server([HelloServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
 
       req = Helloworld.HelloRequest.new(name: "get peer")
       {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)
@@ -207,7 +207,7 @@ defmodule GRPC.Integration.ServerTest do
 
   test "get cert returns correct client certificate when not present" do
     run_server([HelloServer], fn port ->
-      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
+      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
 
       req = Helloworld.HelloRequest.new(name: "get cert")
       {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)

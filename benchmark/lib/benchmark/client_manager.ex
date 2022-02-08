@@ -95,7 +95,7 @@ defmodule Benchmark.ClientManager do
   end
 
   defp new_client(addr) do
-    {:ok, ch} = GRPC.Stub.connect(addr)
+    {:ok, ch} = Falco.Stub.connect(addr)
     ch
   end
 
@@ -103,7 +103,7 @@ defmodule Benchmark.ClientManager do
     if elem(config.load_params.load, 0) != :closed_loop,
       do:
         raise(
-          GRPC.RPCError,
+          Falco.RPCError,
           status: :unimplemented,
           message: "load #{inspect(config.load_params.load)} not support"
         )
@@ -114,7 +114,7 @@ defmodule Benchmark.ClientManager do
           %{req_size: payload.req_size, resp_size: payload.resp_size, type: :protobuf}
 
         _ ->
-          raise(GRPC.RPCError, status: :unimplemented)
+          raise(Falco.RPCError, status: :unimplemented)
       end
 
     Map.put(payload, :rpc_type, rpc_type)
