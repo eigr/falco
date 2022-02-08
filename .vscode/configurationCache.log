@@ -1,1 +1,0 @@
-{"buildTargets":["ci-cron","release","test","test-all","test-prepare"],"launchTargets":[],"customConfigurationProvider":{"workspaceBrowse":{"browsePath":[],"compilerArgs":[]},"fileIndex":[]}}
