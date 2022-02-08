@@ -125,7 +125,7 @@ Check [examples](examples) and [interop](interop)(Interoperability Test) for som
 - [x] [Connection Backoff](https://github.com/grpc/grpc/blob/master/doc/connection-backoff.md)
 - [x] Data compression
 - [x] Support other encoding(other than protobuf)
-- [ ] gRPC Web support
+- [x] gRPC Web support
 
 ## Benchmark
 
