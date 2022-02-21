@@ -23,13 +23,13 @@ defmodule Interop.MixProject do
   defp deps do
     [
       {:falco, path: "..", override: true},
-      {:cowlib, "~> 2.9.0", override: true},
-      {:grpc_prometheus, ">= 0.1.0"},
-      {:grpc_statsd, "~> 0.1.0"},
-      {:statix, ">= 1.2.1"},
-      {:extrace, "~> 0.2"},
-      {:prometheus, "~> 4.0", override: true},
-      {:prometheus_httpd, "~> 2.0"}
+      {:cowlib, "~> 2.9.0", override: true}
+      #{:grpc_prometheus, ">= 0.1.0"},
+      #{#:grpc_statsd, "~> 0.1.0"},
+      #{:statix, ">= 1.2.1"},
+      #{:extrace, "~> 0.2"},
+      #{:prometheus, "~> 4.0", override: true},
+      #{:prometheus_httpd, "~> 2.0"}
     ]
   end
 end

@@ -20,7 +20,7 @@ defmodule Falco.Transport.HTTP2Test do
              {":path", "/foo/bar"},
              {":authority", "grpc.io"},
              {"content-type", "application/grpc"},
-             {"user-agent", "grpc-elixir/1.0.0"},
+             {"user-agent", "Falco/0.5.0-beta.1"},
              {"te", "trailers"}
            ]
   end

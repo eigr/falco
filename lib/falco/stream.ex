@@ -7,7 +7,7 @@ defmodule Falco.Stream do
   Get headers from server stream.
 
   For the client side, you should use `:return_headers` option to get headers,
-  see `Falco.Stub` for details.
+  see `GRPC.Stub` for details.
   """
   @spec get_headers(Falco.Server.Stream.t()) :: map
   def get_headers(%Falco.Server.Stream{adapter: adapter} = stream) do

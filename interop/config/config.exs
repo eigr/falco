@@ -1,9 +1,9 @@
-use Mix.Config
+import Config
 
-config :prometheus, GRPCPrometheus.ServerInterceptor,
+config :prometheus, Falco.Observability.Prometheus.ServerInterceptor,
   latency: :histogram
 
-config :prometheus, GRPCPrometheus.ClientInterceptor,
+config :prometheus, Falco.Observability.Prometheus.ClientInterceptor,
   latency: :histogram
 
 # config :falco, start_server: true

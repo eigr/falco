@@ -7,10 +7,11 @@ IO.puts "Rounds: #{rounds}; concurrency: #{concurrency}; port: #{port}"
 IO.puts ""
 
 alias Interop.Client
+alias Falco.Observability.Prometheus.ClientInterceptor
 {:ok, _pid, port} = Falco.Server.start_endpoint(Interop.Endpoint, port)
 
 stream = Task.async_stream(1..concurrency, fn cli ->
-  ch = Client.connect("127.0.0.1", port, interceptors: [GRPCPrometheus.ClientInterceptor, Falco.Logger.Client])
+  ch = Client.connect("127.0.0.1", port, interceptors: [ClientInterceptor, Falco.Logger.Client])
   run = fn(i) ->
     IO.puts("Client##{cli}, Round #{i}")
     Client.empty_unary!(ch)

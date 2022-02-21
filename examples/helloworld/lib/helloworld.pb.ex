@@ -21,11 +21,11 @@ defmodule Helloworld.HelloReply do
 end
 
 defmodule Helloworld.Greeter.Service do
-  use Falco.Service, name: "helloworld.Greeter"
+  use GRPC.Service, name: "helloworld.Greeter"
 
   rpc :SayHello, Helloworld.HelloRequest, Helloworld.HelloReply
 end
 
 defmodule Helloworld.Greeter.Stub do
-  use Falco.Stub, service: Helloworld.Greeter.Service
+  use GRPC.Stub, service: Helloworld.Greeter.Service
 end

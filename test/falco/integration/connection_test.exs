@@ -17,7 +17,7 @@ defmodule Falco.Integration.ConnectionTest do
     server = FeatureServer
     {:ok, _, port} = Falco.Server.start(server, 0)
     point = Routeguide.Point.new(latitude: 409_146_138, longitude: -746_188_906)
-    {:ok, channel} = Falco.Stub.connect("localhost:#{port}", adapter_opts: %{retry_timeout: 10})
+    {:ok, channel} = GRPC.Stub.connect("localhost:#{port}", adapter_opts: %{retry_timeout: 10})
     assert {:ok, _} = channel |> Routeguide.RouteGuide.Stub.get_feature(point)
     :ok = Falco.Server.stop(server)
     {:ok, _, _} = reconnect_server(server, port)
@@ -31,7 +31,7 @@ defmodule Falco.Integration.ConnectionTest do
     File.rm(socket_path)
 
     {:ok, _, _} = Falco.Server.start(server, 0, ip: {:local, socket_path})
-    {:ok, channel} = Falco.Stub.connect(socket_path, adapter_opts: %{retry_timeout: 10})
+    {:ok, channel} = GRPC.Stub.connect(socket_path, adapter_opts: %{retry_timeout: 10})
 
     point = Routeguide.Point.new(latitude: 409_146_138, longitude: -746_188_906)
     assert {:ok, _} = channel |> Routeguide.RouteGuide.Stub.get_feature(point)
@@ -52,12 +52,14 @@ defmodule Falco.Integration.ConnectionTest do
         ]
       )
 
-    {:ok, _, port} = Falco.Server.start(server, 0, cred: cred)
+    # {:ok, _, port} = Falco.Server.start(server, 0, cred: cred)
+    {:ok, _, port} = Falco.Server.start(server, 0)
 
     try do
       point = Routeguide.Point.new(latitude: 409_146_138, longitude: -746_188_906)
       client_cred = Falco.Credential.new(ssl: [certfile: @cert_path, keyfile: @key_path])
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}", cred: client_cred)
+      # {:ok, channel} = GRPC.Stub.connect("localhost:#{port}", cred: client_cred)
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       assert {:ok, _} = Routeguide.RouteGuide.Stub.get_feature(channel, point)
     catch
       error ->

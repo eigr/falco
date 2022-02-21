@@ -95,7 +95,7 @@ defmodule Benchmark.ClientManager do
   end
 
   defp new_client(addr) do
-    {:ok, ch} = Falco.Stub.connect(addr)
+    {:ok, ch} = GRPC.Stub.connect(addr)
     ch
   end
 

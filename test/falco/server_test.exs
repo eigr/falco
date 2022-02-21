@@ -2,7 +2,7 @@ defmodule Falco.ServerTest do
   use ExUnit.Case
 
   defmodule Greeter.Service do
-    use Falco.Service, name: "hello"
+    use GRPC.Service, name: "hello"
   end
 
   defmodule Greeter.Server do

@@ -14,14 +14,14 @@ end
 
 defmodule Falco.ClientInterceptor do
   @moduledoc """
-  Interceptor on client side. See `Falco.Stub.connect/2`.
+  Interceptor on client side. See `GRPC.Stub.connect/2`.
   """
   alias Falco.Client.Stream
 
   @type options :: any
   @type req :: struct | nil
-  @type next :: (Stream.t(), req -> Falco.Stub.rpc_return())
+  @type next :: (Stream.t(), req -> GRPC.Stub.rpc_return())
 
   @callback init(options) :: options
-  @callback call(stream :: Stream.t(), req, next, options) :: Falco.Stub.rpc_return()
+  @callback call(stream :: Stream.t(), req, next, options) :: GRPC.Stub.rpc_return()
 end

@@ -175,7 +175,7 @@ defmodule Falco.Adapter.Cowboy do
           idle_timeout: idle_timeout,
           inactivity_timeout: idle_timeout,
           settings_timeout: idle_timeout,
-          stream_handlers: [:grpc_stream_h],
+          stream_handlers: [:falco_stream_h],
           # The default option is small
           # https://github.com/ninenines/cowboy/issues/1398
           # If there are 1000 streams in one connection, then 1000/s frames per stream.

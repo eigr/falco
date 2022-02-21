@@ -1,4 +1,4 @@
-defmodule Falco.Service do
+defmodule GRPC.Service do
   @moduledoc """
   Define gRPC service used by Stub and Server. You should use `Protobuf` to
   to generate code instead of using this module directly.
@@ -7,7 +7,7 @@ defmodule Falco.Service do
   functions easily:
 
       defmodule Greeter.Service do
-        use Falco.Service, name: "helloworld.Greeter"
+        use GRPC.Service, name: "helloworld.Greeter"
 
         rpc :SayHello, HelloRequest, stream(HelloReply)
       end
@@ -15,10 +15,10 @@ defmodule Falco.Service do
 
   defmacro __using__(opts) do
     quote do
-      import Falco.Service, only: [rpc: 3, stream: 1]
+      import GRPC.Service, only: [rpc: 3, stream: 1]
 
       Module.register_attribute(__MODULE__, :rpc_calls, accumulate: true)
-      @before_compile Falco.Service
+      @before_compile GRPC.Service
 
       def __meta__(:name), do: unquote(opts[:name])
     end

@@ -68,7 +68,7 @@ defmodule Routeguide.RouteSummary do
 end
 
 defmodule Routeguide.RouteGuide.Service do
-  use Falco.Service, name: "routeguide.RouteGuide"
+  use GRPC.Service, name: "routeguide.RouteGuide"
 
   rpc :GetFeature, Routeguide.Point, Routeguide.Feature
   rpc :ListFeatures, Routeguide.Rectangle, stream(Routeguide.Feature)
@@ -77,5 +77,5 @@ defmodule Routeguide.RouteGuide.Service do
 end
 
 defmodule Routeguide.RouteGuide.Stub do
-  use Falco.Stub, service: Routeguide.RouteGuide.Service
+  use GRPC.Stub, service: Routeguide.RouteGuide.Service
 end

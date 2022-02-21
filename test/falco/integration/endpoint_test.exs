@@ -66,7 +66,7 @@ defmodule Falco.Integration.EndpointTest do
   test "endpoint uses Logger interceptor for unary" do
     assert capture_log(fn ->
              run_endpoint(HelloEndpoint, fn port ->
-               {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+               {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
 
                req = Helloworld.HelloRequest.new(name: "Elixir")
                {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)
@@ -78,7 +78,7 @@ defmodule Falco.Integration.EndpointTest do
   test "endpoint uses Logger interceptor for streaming server" do
     assert capture_log(fn ->
              run_endpoint(FeatureEndpoint, fn port ->
-               {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+               {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
 
                point = Routeguide.Point.new(latitude: 409_146_138, longitude: -746_188_906)
                rect = Routeguide.Rectangle.new(hi: point, lo: point)
@@ -92,14 +92,14 @@ defmodule Falco.Integration.EndpointTest do
   test "endpoint uses Logger interceptor for streaming client" do
     assert capture_log(fn ->
              run_endpoint(FeatureEndpoint, fn port ->
-               {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+               {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
 
                point0 = Routeguide.Point.new(latitude: 0, longitude: -1)
                point1 = Routeguide.Point.new(latitude: 1, longitude: 1)
                stream = channel |> Routeguide.RouteGuide.Stub.record_route()
-               Falco.Stub.send_request(stream, point0)
-               Falco.Stub.send_request(stream, point1, end_stream: true)
-               reply = Falco.Stub.recv(stream)
+               GRPC.Stub.send_request(stream, point0)
+               GRPC.Stub.send_request(stream, point1, end_stream: true)
+               reply = GRPC.Stub.recv(stream)
                assert {:ok, Routeguide.RouteSummary.new(point_count: 2)} == reply
              end)
            end) =~ "Falco.Integration.EndpointTest.FeatureServer.record_route"
@@ -108,7 +108,7 @@ defmodule Falco.Integration.EndpointTest do
   test "endpoint uses Logger and custom interceptor" do
     assert capture_log(fn ->
              run_endpoint(FeatureAndHelloHaltEndpoint, fn port ->
-               {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+               {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
 
                point = Routeguide.Point.new(latitude: 409_146_138, longitude: -746_188_906)
                {:ok, feature} = channel |> Routeguide.RouteGuide.Stub.get_feature(point)

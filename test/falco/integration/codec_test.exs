@@ -31,13 +31,13 @@ defmodule Falco.Integration.CodecTest do
     end
   end
 
-  defmodule HelloErlpackStub do
-    use Falco.Stub, service: Helloworld.Greeter.Service
+  defmodule HelloStub do
+    use GRPC.Stub, service: Helloworld.Greeter.Service
   end
 
   test "Says hello over erlpack, grpc-web-text" do
     run_server(HelloServer, fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       name = "Mairbek"
       req = Helloworld.HelloRequest.new(name: name)
 

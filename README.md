@@ -97,12 +97,12 @@ $ mix falco.server
 
 4. Call rpc:
 ```elixir
-iex> {:ok, channel} = Falco.Stub.connect("localhost:50051")
+iex> {:ok, channel} = GRPC.Stub.connect("localhost:50051")
 iex> request = Helloworld.HelloRequest.new(name: "falco-grpc")
 iex> {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(request)
 
 # With interceptors
-iex> {:ok, channel} = Falco.Stub.connect("localhost:50051", interceptors: [Falco.Logger.Client])
+iex> {:ok, channel} = GRPC.Stub.connect("localhost:50051", interceptors: [Falco.Logger.Client])
 ...
 ```
 

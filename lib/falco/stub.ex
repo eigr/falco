@@ -1,21 +1,21 @@
-defmodule Falco.Stub do
+defmodule GRPC.Stub do
   @moduledoc """
   A module acting as the interface for gRPC client.
 
-  You can do everything in the client side via `Falco.Stub`, including connecting,
+  You can do everything in the client side via `GRPC.Stub`, including connecting,
   sending/receiving steaming or non-steaming requests, canceling calls and so on.
 
   A service is needed to define a stub:
 
       defmodule Greeter.Service do
-        use Falco.Service, name: "ping"
+        use GRPC.Service, name: "ping"
 
         rpc :SayHello, Request, Reply
         rpc :SayGoodbye, stream(Request), stream(Reply)
       end
 
       defmodule Greeter.Stub do
-        use Falco.Stub, service: Greeter.Service
+        use GRPC.Stub, service: Greeter.Service
       end
 
   so that functions `say_hello/2` and `say_goodbye/1` will be generated for you:
@@ -25,8 +25,8 @@ defmodule Falco.Stub do
 
       # Streaming call
       stream = Greeter.Stub.say_goodbye(channel)
-      Falco.Stub.send_request(stream, request, end_stream: true)
-      {:ok, reply_enum} = Falco.Stub.recv(stream)
+      GRPC.Stub.send_request(stream, request, end_stream: true)
+      {:ok, reply_enum} = GRPC.Stub.recv(stream)
       replies = Enum.map(reply_enum, fn({:ok, reply}) -> reply end)
 
   Note that streaming calls are very different with unary calls. If request is
@@ -65,7 +65,7 @@ defmodule Falco.Stub do
       Enum.each(service_mod.__rpc_calls__, fn {name, {_, req_stream}, {_, res_stream}} = rpc ->
         func_name = name |> to_string |> Macro.underscore()
         path = "/#{service_name}/#{name}"
-        grpc_type = Falco.Service.grpc_type(rpc)
+        grpc_type = GRPC.Service.grpc_type(rpc)
 
         stream = %Falco.Client.Stream{
           service_name: service_name,
@@ -78,7 +78,7 @@ defmodule Falco.Stub do
 
         if req_stream do
           def unquote(String.to_atom(func_name))(channel, opts \\ []) do
-            Falco.Stub.call(
+            GRPC.Stub.call(
               unquote(service_mod),
               unquote(Macro.escape(rpc)),
               %{unquote(Macro.escape(stream)) | channel: channel},
@@ -88,7 +88,7 @@ defmodule Falco.Stub do
           end
         else
           def unquote(String.to_atom(func_name))(channel, request, opts \\ []) do
-            Falco.Stub.call(
+            GRPC.Stub.call(
               unquote(service_mod),
               unquote(Macro.escape(rpc)),
               %{unquote(Macro.escape(stream)) | channel: channel},
@@ -107,13 +107,13 @@ defmodule Falco.Stub do
 
   ## Examples
 
-      iex> Falco.Stub.connect("localhost:50051")
+      iex> GRPC.Stub.connect("localhost:50051")
       {:ok, channel}
 
-      iex> Falco.Stub.connect("localhost:50051", accepted_compressors: [Falco.Compressor.Gzip])
+      iex> GRPC.Stub.connect("localhost:50051", accepted_compressors: [Falco.Compressor.Gzip])
       {:ok, channel}
 
-      iex> Falco.Stub.connect("/paht/to/unix.sock")
+      iex> GRPC.Stub.connect("/paht/to/unix.sock")
       {:ok, channel}
 
   ## Options
@@ -337,8 +337,8 @@ defmodule Falco.Stub do
 
   ## Examples
 
-      iex> stream = Falco.Stub.send_request(stream, request)
-      iex> Falco.Stub.end_stream(stream)
+      iex> stream = GRPC.Stub.send_request(stream, request)
+      iex> GRPC.Stub.end_stream(stream)
   """
   @spec end_stream(Falco.Client.Stream.t()) :: Falco.Client.Stream.t()
   def end_stream(%{channel: channel} = stream) do
@@ -370,10 +370,10 @@ defmodule Falco.Stub do
   ## Examples
 
       # Reply is not streaming
-      {:ok, reply} = Falco.Stub.recv(stream)
+      {:ok, reply} = GRPC.Stub.recv(stream)
 
       # Reply is streaming
-      {:ok, enum} = Falco.Stub.recv(stream)
+      {:ok, enum} = GRPC.Stub.recv(stream)
       replies = Enum.map(enum, fn({:ok, reply}) -> reply end)
 
   ## Options

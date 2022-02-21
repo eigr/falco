@@ -8,8 +8,8 @@ defmodule Interop.App do
       supervisor(Falco.Server.Supervisor, [{Interop.Endpoint, 10000}])
     ]
 
-    GRPCPrometheus.ServerInterceptor.setup()
-    GRPCPrometheus.ClientInterceptor.setup()
+    Falco.Observability.Prometheus.ServerInterceptor.setup()
+    Falco.Observability.Prometheus.ClientInterceptor.setup()
     :prometheus_httpd.start()
     Interop.ServerInterceptor.Statix.connect()
 

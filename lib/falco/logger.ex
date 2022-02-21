@@ -59,8 +59,8 @@ defmodule Falco.Logger.Client do
 
   ## Usage
 
-      {:ok, channel} = Falco.Stub.connect("localhost:50051", interceptors: [Falco.Logger.Client])
-      {:ok, channel} = Falco.Stub.connect("localhost:50051", interceptors: [{Falco.Logger.Client, level: :info}])
+      {:ok, channel} = GRPC.Stub.connect("localhost:50051", interceptors: [Falco.Logger.Client])
+      {:ok, channel} = GRPC.Stub.connect("localhost:50051", interceptors: [{Falco.Logger.Client, level: :info}])
   """
 
   def init(opts) do

@@ -2,10 +2,10 @@ defmodule Falco.Server do
   @moduledoc """
   A gRPC server which handles requests by calling user-defined functions.
 
-  You should pass a `Falco.Service` in when *use* the module:
+  You should pass a `GRPC.Service` in when *use* the module:
 
       defmodule Greeter.Service do
-        use Falco.Service, name: "ping"
+        use GRPC.Service, name: "ping"
 
         rpc :SayHello, Request, Reply
         rpc :SayGoodbye, stream(Request), stream(Reply)
@@ -51,7 +51,7 @@ defmodule Falco.Server do
       Enum.each(service_mod.__rpc_calls__, fn {name, _, _} = rpc ->
         func_name = name |> to_string |> Macro.underscore() |> String.to_atom()
         path = "/#{service_name}/#{name}"
-        grpc_type = Falco.Service.grpc_type(rpc)
+        grpc_type = GRPC.Service.grpc_type(rpc)
 
         def __call_rpc__(unquote(path), stream) do
           Falco.Server.call(

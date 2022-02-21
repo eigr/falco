@@ -35,7 +35,7 @@ defmodule Falco.Integration.ClientInterceptorTest do
   test "client sends headers" do
     run_endpoint(HelloEndpoint, fn port ->
       {:ok, channel} =
-        Falco.Stub.connect("localhost:#{port}",
+        GRPC.Stub.connect("localhost:#{port}",
           interceptors: [
             {AddHeadersClientInterceptor, "two"},
             {AddHeadersClientInterceptor, "one"}

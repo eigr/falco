@@ -3,5 +3,5 @@ defmodule Interop.ServerInterceptor.Statix do
 end
 
 defmodule Interop.ServerInterceptor do
-  use GRPCStatsd.ServerInterceptor, statsd_module: Interop.ServerInterceptor.Statix
+  use Falco.Observability.Statsd.ServerInterceptor, statsd_module: Interop.ServerInterceptor.Statix
 end

@@ -2,7 +2,7 @@ defmodule Falco.Integration.ErplackNotypesTest do
   use Falco.Integration.TestCase
 
   defmodule Helloworld.Notypes.Service do
-    use Falco.Service, name: "helloworld.Notypes"
+    use GRPC.Service, name: "helloworld.Notypes"
 
     rpc :ReplyHello, :ignore, :ignore
   end
@@ -16,13 +16,13 @@ defmodule Falco.Integration.ErplackNotypesTest do
   end
 
   defmodule HelloErlpackStub do
-    use Falco.Stub, service: Helloworld.Notypes.Service
+    use GRPC.Stub, service: Helloworld.Notypes.Service
   end
 
   test "Says hello over erlpack" do
     run_server(HelloServer, fn port ->
       {:ok, channel} =
-        Falco.Stub.connect(
+        GRPC.Stub.connect(
           "localhost:#{port}",
           interceptors: [Falco.Logger.Client],
           codec: Falco.Codec.Erlpack
@@ -36,8 +36,7 @@ defmodule Falco.Integration.ErplackNotypesTest do
 
   test "Says hello over erlpack call level" do
     run_server(HelloServer, fn port ->
-      {:ok, channel} =
-        Falco.Stub.connect("localhost:#{port}", interceptors: [Falco.Logger.Client])
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}", interceptors: [Falco.Logger.Client])
 
       name = "World"
       {:ok, reply} = channel |> HelloErlpackStub.reply_hello(name, codec: Falco.Codec.Erlpack)

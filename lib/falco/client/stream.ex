@@ -52,7 +52,7 @@ defmodule Falco.Client.Stream do
             headers: %{},
             __interface__: %{
               send_request: &__MODULE__.send_request/3,
-              recv: &Falco.Stub.do_recv/2
+              recv: &GRPC.Stub.do_recv/2
             }
 
   @doc false

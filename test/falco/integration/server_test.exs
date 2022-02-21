@@ -100,7 +100,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "multiple servers works" do
     run_server([FeatureServer, HelloServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       point = Routeguide.Point.new(latitude: 409_146_138, longitude: -746_188_906)
       {:ok, feature} = channel |> Routeguide.RouteGuide.Stub.get_feature(point)
       assert feature == Routeguide.Feature.new(location: point, name: "409146138,-746188906")
@@ -113,7 +113,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "returns appropriate error for unary requests" do
     run_server([HelloErrorServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       req = Helloworld.HelloRequest.new(name: "Elixir")
       {:error, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)
 
@@ -126,7 +126,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "return errors for unknown errors" do
     run_server([HelloErrorServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       req = Helloworld.HelloRequest.new(name: "unknown error")
 
       assert {:error,
@@ -137,7 +137,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "returns appropriate error for stream requests" do
     run_server([FeatureErrorServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       rect = Routeguide.Rectangle.new()
       error = %Falco.RPCError{message: "Please authenticate", status: 16}
       assert {:error, ^error} = channel |> Routeguide.RouteGuide.Stub.list_features(rect)
@@ -146,7 +146,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "return large response(more than MAX_FRAME_SIZE 16384)" do
     run_server([HelloServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       req = Helloworld.HelloRequest.new(name: "large response")
       {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)
       name = String.duplicate("a", round(:math.pow(2, 14)))
@@ -156,7 +156,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "return deadline error for slow server" do
     run_server([TimeoutServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       rect = Routeguide.Rectangle.new()
       error = %Falco.RPCError{message: "Deadline expired", status: 4}
 
@@ -167,7 +167,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "return normally for a little slow server" do
     run_server([SlowServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
       low = Routeguide.Point.new(latitude: 400_000_000, longitude: -750_000_000)
       high = Routeguide.Point.new(latitude: 420_000_000, longitude: -730_000_000)
       rect = Routeguide.Rectangle.new(lo: low, hi: high)
@@ -184,7 +184,7 @@ defmodule Falco.Integration.ServerTest do
       token = "Bearer TOKEN"
 
       {:ok, channel} =
-        Falco.Stub.connect("localhost:#{port}",
+        GRPC.Stub.connect("localhost:#{port}",
           headers: [{"authorization", token}]
         )
 
@@ -197,7 +197,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "get peer returns correct IP address" do
     run_server([HelloServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
 
       req = Helloworld.HelloRequest.new(name: "get peer")
       {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)
@@ -207,7 +207,7 @@ defmodule Falco.Integration.ServerTest do
 
   test "get cert returns correct client certificate when not present" do
     run_server([HelloServer], fn port ->
-      {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
+      {:ok, channel} = GRPC.Stub.connect("localhost:#{port}")
 
       req = Helloworld.HelloRequest.new(name: "get cert")
       {:ok, reply} = channel |> Helloworld.Greeter.Stub.say_hello(req)

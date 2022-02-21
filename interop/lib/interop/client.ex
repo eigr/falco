@@ -2,7 +2,7 @@ defmodule Interop.Client do
   import ExUnit.Assertions, only: [refute: 1]
 
   def connect(host, port, opts \\ []) do
-    {:ok, ch} = Falco.Stub.connect(host, port, opts)
+    {:ok, ch} = GRPC.Stub.connect(host, port, opts)
     ch
   end
 
@@ -62,20 +62,20 @@ defmodule Interop.Client do
     stream =
       ch
       |> Grpc.Testing.TestService.Stub.streaming_input_call()
-      |> Falco.Stub.send_request(
+      |> GRPC.Stub.send_request(
         Grpc.Testing.StreamingInputCallRequest.new(payload: payload(27182))
       )
-      |> Falco.Stub.send_request(Grpc.Testing.StreamingInputCallRequest.new(payload: payload(8)))
-      |> Falco.Stub.send_request(
+      |> GRPC.Stub.send_request(Grpc.Testing.StreamingInputCallRequest.new(payload: payload(8)))
+      |> GRPC.Stub.send_request(
         Grpc.Testing.StreamingInputCallRequest.new(payload: payload(1828))
       )
-      |> Falco.Stub.send_request(
+      |> GRPC.Stub.send_request(
         Grpc.Testing.StreamingInputCallRequest.new(payload: payload(45904)),
         end_stream: true
       )
 
     reply = Grpc.Testing.StreamingInputCallResponse.new(aggregated_payload_size: 74922)
-    {:ok, ^reply} = Falco.Stub.recv(stream)
+    {:ok, ^reply} = GRPC.Stub.recv(stream)
   end
 
   def client_compressed_streaming!(ch) do
@@ -86,14 +86,14 @@ defmodule Interop.Client do
     stream =
       ch
       |> Grpc.Testing.TestService.Stub.streaming_input_call(compressor: Falco.Compressor.Gzip)
-      |> Falco.Stub.send_request(Grpc.Testing.StreamingInputCallRequest.new(payload: payload(27182), expect_compressed: %{value: true}))
-      |> Falco.Stub.send_request(
+      |> GRPC.Stub.send_request(Grpc.Testing.StreamingInputCallRequest.new(payload: payload(27182), expect_compressed: %{value: true}))
+      |> GRPC.Stub.send_request(
         Grpc.Testing.StreamingInputCallRequest.new(payload: payload(45904), expect_compressed: %{value: false}),
         end_stream: true, compress: false
       )
 
     reply = Grpc.Testing.StreamingInputCallResponse.new(aggregated_payload_size: 73086)
-    {:ok, ^reply} = Falco.Stub.recv(stream)
+    {:ok, ^reply} = GRPC.Stub.recv(stream)
   end
 
   def server_streaming!(ch) do
@@ -137,22 +137,22 @@ defmodule Interop.Client do
       )
     end
 
-    Falco.Stub.send_request(stream, req.(31415, 27182))
-    {:ok, res_enum} = Falco.Stub.recv(stream)
+    GRPC.Stub.send_request(stream, req.(31415, 27182))
+    {:ok, res_enum} = GRPC.Stub.recv(stream)
     reply = String.duplicate(<<0>>, 31415)
 
     {:ok, %{payload: %{body: ^reply}}} =
       Stream.take(res_enum, 1) |> Enum.to_list() |> List.first()
 
     Enum.each([{9, 8}, {2653, 1828}, {58979, 45904}], fn {res, payload} ->
-      Falco.Stub.send_request(stream, req.(res, payload))
+      GRPC.Stub.send_request(stream, req.(res, payload))
       reply = String.duplicate(<<0>>, res)
 
       {:ok, %{payload: %{body: ^reply}}} =
         Stream.take(res_enum, 1) |> Enum.to_list() |> List.first()
     end)
 
-    Falco.Stub.end_stream(stream)
+    GRPC.Stub.end_stream(stream)
   end
 
   def empty_stream!(ch) do
@@ -161,8 +161,8 @@ defmodule Interop.Client do
     {:ok, res_enum} =
       ch
       |> Grpc.Testing.TestService.Stub.full_duplex_call()
-      |> Falco.Stub.end_stream()
-      |> Falco.Stub.recv()
+      |> GRPC.Stub.end_stream()
+      |> GRPC.Stub.recv()
 
     [] = Enum.to_list(res_enum)
   end
@@ -192,8 +192,8 @@ defmodule Interop.Client do
     {:ok, res_enum, %{headers: new_headers}} =
       ch
       |> Grpc.Testing.TestService.Stub.full_duplex_call(metadata: metadata)
-      |> Falco.Stub.send_request(req, end_stream: true)
-      |> Falco.Stub.recv(return_headers: true)
+      |> GRPC.Stub.send_request(req, end_stream: true)
+      |> GRPC.Stub.recv(return_headers: true)
 
     reply = String.duplicate(<<0>>, 314_159)
 
@@ -222,8 +222,8 @@ defmodule Interop.Client do
     {:error, ^error} =
       ch
       |> Grpc.Testing.TestService.Stub.full_duplex_call()
-      |> Falco.Stub.send_request(req, end_stream: true)
-      |> Falco.Stub.recv()
+      |> GRPC.Stub.send_request(req, end_stream: true)
+      |> GRPC.Stub.recv()
   end
 
   def unimplemented_service!(ch) do
@@ -237,9 +237,9 @@ defmodule Interop.Client do
   def cancel_after_begin!(ch) do
     IO.puts("Run cancel_after_begin!")
     stream = Grpc.Testing.TestService.Stub.streaming_input_call(ch)
-    stream = Falco.Stub.cancel(stream)
+    stream = GRPC.Stub.cancel(stream)
     error = Falco.RPCError.exception(1, "The operation was cancelled")
-    {:error, ^error} = Falco.Stub.recv(stream)
+    {:error, ^error} = GRPC.Stub.recv(stream)
   end
 
   def cancel_after_first_response!(ch) do
@@ -255,12 +255,12 @@ defmodule Interop.Client do
 
     {:ok, res_enum} =
       stream
-      |> Falco.Stub.send_request(req)
-      |> Falco.Stub.recv()
+      |> GRPC.Stub.send_request(req)
+      |> GRPC.Stub.recv()
 
     {:ok, _} = Stream.take(res_enum, 1) |> Enum.to_list() |> List.first()
-    stream = Falco.Stub.cancel(stream)
-    {:error, %Falco.RPCError{status: 1}} = Falco.Stub.recv(stream)
+    stream = GRPC.Stub.cancel(stream)
+    {:error, %Falco.RPCError{status: 1}} = GRPC.Stub.recv(stream)
   end
 
   def timeout_on_sleeping_server!(ch) do
@@ -273,7 +273,7 @@ defmodule Interop.Client do
       )
 
     stream = Grpc.Testing.TestService.Stub.full_duplex_call(ch, timeout: 1)
-    resp = stream |> Falco.Stub.send_request(req) |> Falco.Stub.recv()
+    resp = stream |> GRPC.Stub.send_request(req) |> GRPC.Stub.recv()
 
     case resp do
       {:error, %Falco.RPCError{status: 4}} ->
