@@ -1,7 +1,7 @@
 % This is almost same with cowboy_stream_h, but cowboy has two problems:
 % 1. cowboy_req:read_body's length can't be auto and period can't be infinity together
 % 2. cowboy_stream_h can't handle when body is empty and stream is fin
--module(Falco_stream_h).
+-module(falco_stream_h).
 -behavior(cowboy_stream).
 
 -ifdef(OTP_RELEASE).
