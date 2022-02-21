@@ -35,7 +35,7 @@ defmodule Falco.Integration.CodecTest do
     use Falco.Stub, service: Helloworld.Greeter.Service
   end
 
-  test "Says hello over erlpack, GRPC-web-text" do
+  test "Says hello over erlpack, grpc-web-text" do
     run_server(HelloServer, fn port ->
       {:ok, channel} = Falco.Stub.connect("localhost:#{port}")
       name = "Mairbek"

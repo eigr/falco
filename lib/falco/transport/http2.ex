@@ -8,19 +8,19 @@ defmodule Falco.Transport.HTTP2 do
 
   require Logger
 
-  def server_headers(%{codec: GRPC.Codec.WebText = codec}) do
-    %{"content-type" => "application/grpc-web-#{codec.name}"}
+  def server_headers(%{codec: Falco.Codec.WebText = codec}) do
+    %{"content-type" => "application/Falco-web-#{codec.name}"}
   end
 
   def server_headers(%{codec: codec}) do
-    %{"content-type" => "application/grpc+#{codec.name}"}
+    %{"content-type" => "application/Falco+#{codec.name}"}
   end
 
   @spec server_trailers(integer, String.t()) :: map
   def server_trailers(status \\ Status.ok(), message \\ "") do
     %{
-      "grpc-status" => Integer.to_string(status),
-      "grpc-message" => message
+      "Falco-status" => Integer.to_string(status),
+      "Falco-message" => message
     }
   end
 
@@ -42,32 +42,32 @@ defmodule Falco.Transport.HTTP2 do
         ]
   def client_headers_without_reserved(%{codec: codec} = stream, opts \\ %{}) do
     [
-      # It seems only gRPC implemenations only support "application/grpc", so we support :content_type now.
+      # It seems only Falco implemenations only support "application/Falco", so we support :content_type now.
       {"content-type", content_type(opts[:content_type], codec)},
-      {"user-agent", "grpc-elixir/#{opts[:grpc_version] || Falco.version()}"},
+      {"user-agent", "Falco-elixir/#{opts[:Falco_version] || Falco.version()}"},
       {"te", "trailers"}
     ]
     |> append_compressor(stream.compressor)
     |> append_accepted_compressors(stream.accepted_compressors)
     |> append_custom_metadata(stream.channel.headers)
-    |> append_encoding(opts[:grpc_encoding])
+    |> append_encoding(opts[:Falco_encoding])
     |> append_timeout(opts[:timeout])
     |> append_custom_metadata(stream.headers)
     |> append_custom_metadata(opts[:metadata])
 
-    # TODO: grpc-accept-encoding, grpc-message-type
+    # TODO: Falco-accept-encoding, Falco-message-type
     # TODO: Authorization
   end
 
   defp content_type(custom, _codec) when is_binary(custom), do: custom
 
   defp content_type(_, codec) do
-    # Some gRPC implementations don't support application/grpc+xyz,
-    # to avoid this kind of trouble, use application/grpc by default
+    # Some Falco implementations don't support application/Falco+xyz,
+    # to avoid this kind of trouble, use application/Falco by default
     if codec == Falco.Codec.Proto do
-      "application/grpc"
+      "application/Falco"
     else
-      "application/grpc+#{codec.name}"
+      "application/Falco+#{codec.name}"
     end
   end
 
@@ -96,28 +96,28 @@ defmodule Falco.Transport.HTTP2 do
     end)
   end
 
-  defp append_encoding(headers, grpc_encoding) when is_binary(grpc_encoding) do
-    Logger.warn("grpc_encoding option is deprecated, please use compressor.")
-    [{"grpc-encoding", grpc_encoding} | headers]
+  defp append_encoding(headers, Falco_encoding) when is_binary(Falco_encoding) do
+    Logger.warn("Falco_encoding option is deprecated, please use compressor.")
+    [{"Falco-encoding", Falco_encoding} | headers]
   end
 
   defp append_encoding(headers, _), do: headers
 
   defp append_compressor(headers, compressor) when not is_nil(compressor) do
-    [{"grpc-encoding", compressor.name()} | headers]
+    [{"Falco-encoding", compressor.name()} | headers]
   end
 
   defp append_compressor(headers, _), do: headers
 
   defp append_accepted_compressors(headers, [_] = compressors) do
     encoding = Enum.map_join(compressors, ",", & &1.name())
-    [{"grpc-accept-encoding", encoding} | headers]
+    [{"Falco-accept-encoding", encoding} | headers]
   end
 
   defp append_accepted_compressors(headers, _), do: headers
 
   defp append_timeout(headers, timeout) when is_integer(timeout) do
-    [{"grpc-timeout", Utils.encode_timeout(timeout)} | headers]
+    [{"Falco-timeout", Utils.encode_timeout(timeout)} | headers]
   end
 
   defp append_timeout(headers, _), do: headers
@@ -147,7 +147,7 @@ defmodule Falco.Transport.HTTP2 do
   end
 
   defp is_reserved_header(":" <> _), do: true
-  defp is_reserved_header("grpc-" <> _), do: true
+  defp is_reserved_header("Falco-" <> _), do: true
   defp is_reserved_header("content-type"), do: true
   defp is_reserved_header("te"), do: true
   defp is_reserved_header(_), do: false

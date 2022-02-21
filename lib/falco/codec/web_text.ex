@@ -1,4 +1,4 @@
-defmodule GRPC.Codec.WebText do
+defmodule Falco.Codec.WebText do
   @behaviour Falco.Codec
 
   def name() do

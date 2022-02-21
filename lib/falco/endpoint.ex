@@ -1,6 +1,6 @@
 defmodule Falco.Endpoint do
   @moduledoc """
-  GRPC endpoint for multiple servers and interceptors.
+  Falco endpoint for multiple servers and interceptors.
 
   ## Usage
 
